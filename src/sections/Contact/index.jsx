@@ -5,9 +5,9 @@ import { Container } from '../../ui/Container'
 import { cn } from '../../utils/cn'
 import { useTheme } from '../../context/ThemeContext'
 
-const EMAILJS_SERVICE_ID = 'service_b0kyeew'
-const EMAILJS_TEMPLATE_ID = 'template_mgs3qwk'
-const EMAILJS_PUBLIC_KEY = 'NmbF-p3rLmXXnOlQ0'
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
 
 const TOPICS = ['defence', 'sci-fi', 'tech', 'India', 'astronomy', 'startups', 'space', 'the future']
 
