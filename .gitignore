@@ -3,20 +3,16 @@ node_modules/
 
 # Build output
 dist/
+dist-ssr/
 
-# Environment variables (keep secrets safe)
-.env
-.env.local
-.env.production
-.env.*.local
+# Logs
+npm-debug.log*
+yarn-debug.log*
 
-# Vite cache
-.vite/
-
-# OS files
+# Editor / OS
+.vscode/
 .DS_Store
 Thumbs.db
 
-# Editor folders
-.vscode/
-.idea/
+# Cache
+.eslintcache
