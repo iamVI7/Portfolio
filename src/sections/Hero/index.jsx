@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { Container } from '../../ui/Container'
 import { cn } from '../../utils/cn'
 import { useTheme } from '../../context/ThemeContext'
@@ -30,107 +30,68 @@ const socials = [
 const EMAIL = 'vishalyadav75186@gmail.com'
 
 function CopyEmailButton({ dark }) {
-  const [state, setState] = useState('idle') // 'idle' | 'hover' | 'copied'
+  const [hovered, setHovered] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(EMAIL)
-      setState('copied')
-      setTimeout(() => setState('idle'), 2000)
+      setCopied(true)
+      setHovered(false)
+      setTimeout(() => setCopied(false), 2000)
     } catch {
       window.location.href = `mailto:${EMAIL}`
     }
   }
 
-  return (
-    <div className="relative flex items-center">
-      <button
-        onClick={handleCopy}
-        onMouseEnter={() => state !== 'copied' && setState('hover')}
-        onMouseLeave={() => state !== 'copied' && setState('idle')}
-        aria-label="Copy email address"
-        className={cn(
-          'group relative flex items-center gap-2 rounded-full border px-3 py-1.5 transition-all duration-200',
-          state === 'copied'
-            ? dark
-              ? 'border-emerald-500/30 bg-emerald-950/40 text-emerald-400'
-              : 'border-emerald-300 bg-emerald-50 text-emerald-600'
-            : dark
-            ? 'border-white/[0.09] bg-white/[0.03] text-slate-500 hover:text-slate-200 hover:border-white/20 hover:bg-white/[0.07]'
-            : 'border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:border-slate-300'
-        )}
-      >
-        {/* Email icon or check */}
-        <AnimatePresence mode="wait">
-          {state === 'copied' ? (
-            <motion.span
-              key="check"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.5, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-            </motion.span>
-          ) : (
-            <motion.span
-              key="mail"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.5, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="4" width="20" height="16" rx="2" />
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-              </svg>
-            </motion.span>
-          )}
-        </AnimatePresence>
+  const label = copied ? 'Copied!' : hovered ? 'Copy email' : EMAIL
 
-        {/* Email text with animated label */}
-        <span className="relative overflow-hidden font-mono text-[10.5px] sm:text-[11px]">
-          <AnimatePresence mode="wait">
-            {state === 'copied' ? (
-              <motion.span
-                key="copied"
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -10, opacity: 0 }}
-                transition={{ duration: 0.18 }}
-                className="block"
-              >
-                Copied!
-              </motion.span>
-            ) : state === 'hover' ? (
-              <motion.span
-                key="copy"
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -10, opacity: 0 }}
-                transition={{ duration: 0.18 }}
-                className="block"
-              >
-                Copy email
-              </motion.span>
-            ) : (
-              <motion.span
-                key="email"
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -10, opacity: 0 }}
-                transition={{ duration: 0.18 }}
-                className="block"
-              >
-                {EMAIL}
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </span>
-      </button>
-    </div>
+  return (
+    <motion.button
+      layout
+      onClick={handleCopy}
+      onMouseEnter={() => !copied && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      aria-label="Copy email address"
+      transition={{ layout: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
+      className={cn(
+        'flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[10.5px] sm:text-[11px] transition-colors duration-200 overflow-hidden whitespace-nowrap',
+        copied
+          ? dark
+            ? 'border-emerald-500/30 bg-emerald-950/40 text-emerald-400'
+            : 'border-emerald-300 bg-emerald-50 text-emerald-600'
+          : dark
+          ? 'border-white/[0.09] bg-white/[0.03] text-slate-500 hover:text-slate-200 hover:border-white/20 hover:bg-white/[0.07]'
+          : 'border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:border-slate-300'
+      )}
+    >
+      {/* Icon */}
+      <motion.span layout className="flex-shrink-0">
+        {copied ? (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+        ) : (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+          </svg>
+        )}
+      </motion.span>
+
+      {/* Label — pill resizes to fit, animates smoothly via layout */}
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={label}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.15 }}
+        >
+          {label}
+        </motion.span>
+      </AnimatePresence>
+    </motion.button>
   )
 }
 
@@ -229,30 +190,9 @@ export function Hero() {
           {/* ── Text block ── */}
           <div className="flex flex-col items-center text-center sm:items-start sm:text-left">
 
-            {/* Namaste — improved */}
+            {/* Heading — custom={0} now since namaste is removed */}
             <motion.div
               custom={0}
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              className="mb-5"
-            >
-              <div className={cn(
-                'inline-flex items-center gap-2.5',
-                dark ? 'text-slate-400' : 'text-slate-500'
-              )}>
-                <span className="inline-block text-[18px] leading-none select-none" aria-hidden="true">
-                  🙏
-                </span>
-                <span className="font-mono text-[11px] uppercase tracking-[0.18em]">
-                  Namaste
-                </span>
-              </div>
-            </motion.div>
-
-            {/* Heading */}
-            <motion.div
-              custom={1}
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -280,7 +220,7 @@ export function Hero() {
 
             {/* Sub text */}
             <motion.p
-              custom={2}
+              custom={1}
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -298,13 +238,10 @@ export function Hero() {
               )}>
                 {/* India flag SVG */}
                 <svg width="18" height="12" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" className="rounded-[2px] flex-shrink-0">
-                  {/* Three horizontal stripes */}
                   <rect width="900" height="200" y="0"   fill="#FF9933"/>
                   <rect width="900" height="200" y="200" fill="#FFFFFF"/>
                   <rect width="900" height="200" y="400" fill="#138808"/>
-                  {/* Ashoka Chakra - outer ring */}
                   <circle cx="450" cy="300" r="80" fill="none" stroke="#000088" strokeWidth="10"/>
-                  {/* 24 spokes */}
                   {Array.from({length: 24}).map((_, i) => {
                     const angle = (i * 15 - 90) * Math.PI / 180
                     return (
@@ -319,7 +256,6 @@ export function Hero() {
                       />
                     )
                   })}
-                  {/* Center hub */}
                   <circle cx="450" cy="300" r="12" fill="#000088"/>
                 </svg>
                 India
@@ -333,7 +269,7 @@ export function Hero() {
 
             {/* CTAs */}
             <motion.div
-              custom={3}
+              custom={2}
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -385,7 +321,7 @@ export function Hero() {
 
             {/* Social row */}
             <motion.div
-              custom={4}
+              custom={3}
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -396,25 +332,28 @@ export function Hero() {
               )}
               aria-label="Social links"
             >
-              {socials.map(({ label, href, icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className={cn(
-                    'flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border transition-colors duration-200',
-                    dark
-                      ? 'border-white/[0.09] bg-white/[0.03] text-slate-500 hover:text-slate-200 hover:border-white/20 hover:bg-white/[0.07]'
-                      : 'border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:border-slate-300'
-                  )}
-                >
-                  {icon}
-                </a>
-              ))}
-
-              <CopyEmailButton dark={dark} />
+              <LayoutGroup>
+                {socials.map(({ label, href, icon }) => (
+                  <motion.a
+                    layout
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    transition={{ layout: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
+                    className={cn(
+                      'flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border transition-colors duration-200',
+                      dark
+                        ? 'border-white/[0.09] bg-white/[0.03] text-slate-500 hover:text-slate-200 hover:border-white/20 hover:bg-white/[0.07]'
+                        : 'border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:border-slate-300'
+                    )}
+                  >
+                    {icon}
+                  </motion.a>
+                ))}
+                <CopyEmailButton dark={dark} />
+              </LayoutGroup>
             </motion.div>
 
           </div>

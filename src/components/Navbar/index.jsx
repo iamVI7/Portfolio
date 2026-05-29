@@ -36,32 +36,14 @@ function MoonIcon() {
 }
 
 const drawerVariants = {
-  hidden: {
-    opacity: 0,
-    y: -10,
-    scale: 0.97,
-  },
+  hidden: { opacity: 0, y: -10, scale: 0.97 },
   visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.22,
-      ease: [0.16, 1, 0.3, 1],
-      staggerChildren: 0.04,
-      delayChildren: 0.04,
-    },
+    opacity: 1, y: 0, scale: 1,
+    transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1], staggerChildren: 0.04, delayChildren: 0.04 },
   },
   exit: {
-    opacity: 0,
-    y: -6,
-    scale: 0.98,
-    transition: {
-      duration: 0.16,
-      ease: [0.4, 0, 1, 1],
-      staggerChildren: 0.02,
-      staggerDirection: -1,
-    },
+    opacity: 0, y: -6, scale: 0.98,
+    transition: { duration: 0.16, ease: [0.4, 0, 1, 1], staggerChildren: 0.02, staggerDirection: -1 },
   },
 }
 
@@ -91,23 +73,6 @@ export function Navbar() {
 
   return (
     <>
-      {/* ── Frosted top bar ── */}
-      <motion.div
-        aria-hidden="true"
-        animate={{ opacity: scrolled ? 1 : 0 }}
-        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-        className={cn(
-          'fixed inset-x-0 top-0 z-40 h-[72px] pointer-events-none',
-          dark
-            ? 'bg-[#080810]/80 backdrop-blur-md border-b border-white/[0.05]'
-            : 'bg-white/75 backdrop-blur-md border-b border-slate-200/60'
-        )}
-        style={{
-          maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-        }}
-      />
-
       <header className="fixed inset-x-0 top-0 z-50 pointer-events-none">
         <nav
           className="mx-auto max-w-[900px] px-4 pt-4 sm:px-8 sm:pt-5 flex items-center justify-between pointer-events-auto"
@@ -136,263 +101,306 @@ export function Navbar() {
               className={cn(
                 'absolute inset-0 rounded-full',
                 dark
-                  ? 'bg-white/[0.07] border border-white/[0.09] shadow-[0_2px_12px_rgba(0,0,0,0.3)]'
-                  : 'bg-white/80 border border-slate-200/70 shadow-[0_2px_12px_rgba(0,0,0,0.07)]'
+                  ? 'bg-white/[0.04] border border-white/[0.07] shadow-[0_2px_8px_rgba(0,0,0,0.25)]'
+                  : 'bg-white/75 border border-slate-200/50 shadow-[0_2px_8px_rgba(0,0,0,0.05)]'
               )}
             />
             <span className="relative z-10">
-              Vishal<span className={dark ? 'text-slate-500' : 'text-slate-400'}>/</span>
+              Vishal<span className={dark ? 'text-slate-400' : 'text-slate-400'}>/</span>
             </span>
           </motion.button>
 
-          {/* ── Combined pill ── */}
-          <motion.div
-            className="relative flex items-center rounded-full"
-            animate={pillActive
-              ? dark
-                ? {
-                    backgroundColor: 'rgba(255,255,255,0.06)',
-                    borderColor: 'rgba(255,255,255,0.08)',
-                    boxShadow: '0 2px 20px rgba(0,0,0,0.35)',
-                    paddingLeft: '2px',
-                    paddingRight: '2px',
-                  }
-                : {
-                    backgroundColor: 'rgba(255,255,255,0.85)',
-                    borderColor: 'rgba(148,163,184,0.5)',
-                    boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
-                    paddingLeft: '2px',
-                    paddingRight: '2px',
-                  }
-              : {
-                  backgroundColor: 'rgba(255,255,255,0)',
-                  borderColor: 'rgba(255,255,255,0)',
-                  boxShadow: '0 0px 0px rgba(0,0,0,0)',
-                  paddingLeft: '0px',
-                  paddingRight: '0px',
+          {/* ── Right side: desktop inline links + toggle | mobile pill with hamburger ── */}
+          <div className="flex items-center gap-2">
+
+            {/* ══ DESKTOP: inline nav links (hidden on mobile) ══ */}
+            <div className="hidden md:flex items-center">
+              <motion.div
+                className="flex items-center rounded-full"
+                animate={scrolled
+                  ? dark
+                    ? {
+                        backgroundColor: 'rgba(255,255,255,0.07)',
+                        borderColor: 'rgba(255,255,255,0.10)',
+                        boxShadow: '0 2px 20px rgba(0,0,0,0.45)',
+                        paddingLeft: '6px',
+                        paddingRight: '6px',
+                      }
+                    : {
+                        backgroundColor: 'rgba(255,255,255,0.90)',
+                        borderColor: 'rgba(148,163,184,0.5)',
+                        boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+                        paddingLeft: '6px',
+                        paddingRight: '6px',
+                      }
+                  : {
+                      backgroundColor: 'rgba(255,255,255,0)',
+                      borderColor: 'rgba(255,255,255,0)',
+                      boxShadow: '0 0px 0px rgba(0,0,0,0)',
+                      paddingLeft: '0px',
+                      paddingRight: '0px',
+                    }
                 }
-            }
-            transition={pillTransition}
-            style={{
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              backdropFilter: 'blur(14px)',
-              WebkitBackdropFilter: 'blur(14px)',
-            }}
-          >
-            {/* Dark mode toggle */}
-            <motion.button
-  onClick={toggle}
-  whileTap={{ scale: 0.88 }}
-  aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className={cn(
-                'flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
-                dark ? 'text-slate-400 hover:text-yellow-300' : 'text-slate-500 hover:text-indigo-600',
-              )}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                {dark ? (
-                  <motion.span key="sun" initial={{ rotate: -30, opacity: 0, scale: 0.7 }} animate={{ rotate: 0, opacity: 1, scale: 1 }} exit={{ rotate: 30, opacity: 0, scale: 0.7 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                    <SunIcon />
-                  </motion.span>
-                ) : (
-                  <motion.span key="moon" initial={{ rotate: 30, opacity: 0, scale: 0.7 }} animate={{ rotate: 0, opacity: 1, scale: 1 }} exit={{ rotate: -30, opacity: 0, scale: 0.7 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                    <MoonIcon />
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.button>
-
-            {/* Divider */}
-            <motion.span
-              aria-hidden="true"
-              animate={{ opacity: pillActive ? 1 : 0, scaleY: pillActive ? 1 : 0.5 }}
-              transition={fadeTransition}
-              className={cn(
-                'h-4 w-px shrink-0 origin-center',
-                dark ? 'bg-white/[0.12]' : 'bg-slate-200'
-              )}
-            />
-
-            {/* Hamburger */}
-            <div className="relative">
-              <button
-                onClick={() => setOpen((o) => !o)}
-                aria-label={open ? 'Close menu' : 'Open menu'}
-                aria-expanded={open}
-                aria-controls="nav-drawer"
-                className={cn(
-                  'flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
-                  open
-                    ? dark ? 'text-slate-100' : 'text-slate-800'
-                    : dark ? 'text-slate-400 hover:text-slate-100' : 'text-slate-500 hover:text-slate-800',
-                )}
+                transition={pillTransition}
+                style={{
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  backdropFilter: 'blur(14px)',
+                  WebkitBackdropFilter: 'blur(14px)',
+                }}
               >
-                <AnimatePresence mode="wait" initial={false}>
-                  {open ? (
-                    <motion.svg
-                      key="close"
-                      initial={{ rotate: -45, opacity: 0, scale: 0.7 }}
-                      animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                      exit={{ rotate: 45, opacity: 0, scale: 0.7 }}
-                      transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                      width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18"/>
-                      <line x1="6" y1="6" x2="18" y2="18"/>
-                    </motion.svg>
-                  ) : (
-                    <motion.svg
-                      key="open"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
-                      width="17" height="11" viewBox="0 0 17 11" fill="none"
-                      aria-hidden="true"
-                    >
-                      <line x1="0" y1="1"   x2="17" y2="1"   stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                      <line x1="0" y1="5.5" x2="11" y2="5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                      <line x1="0" y1="10"  x2="17" y2="10"  stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                    </motion.svg>
-                  )}
-                </AnimatePresence>
-              </button>
-
-              {/* ── Dropdown menu ── */}
-              <AnimatePresence>
-                {open && (
-                  <>
-                    {/* Invisible backdrop to close on outside click */}
-                    <motion.div
-                      key="backdrop"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className="fixed inset-0 z-[-1]"
-                      onClick={() => setOpen(false)}
-                    />
-
-                    <motion.div
-                      id="nav-drawer"
-                      key="drawer"
-                      variants={drawerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      role="dialog"
-                      aria-label="Navigation menu"
+                {navLinks.map(({ label, href }) => {
+                  const isActive = active === href
+                  return (
+                    <button
+                      key={href}
+                      onClick={() => handleNav(href)}
+                      aria-current={isActive ? 'page' : undefined}
                       className={cn(
-                        // Width: full viewport width on very small screens, fixed on sm+
-                        'absolute right-0 top-[calc(100%+12px)]',
-                        'w-[calc(100vw-2rem)] max-w-[280px] sm:w-[280px]',
-                        'rounded-2xl overflow-hidden',
-                        dark
-                          ? 'bg-[#0c0c18] border border-white/[0.1] shadow-[0_20px_60px_rgba(0,0,0,0.7)]'
-                          : 'bg-white border border-slate-200/80 shadow-[0_20px_60px_rgba(0,0,0,0.12)]'
+                        'px-4 py-2 rounded-full text-[14px] tracking-tight transition-colors duration-200',
+                        isActive
+                          ? dark
+                            ? 'text-white/80 font-medium'
+                            : 'text-slate-700 font-medium'
+                          : dark
+                            ? 'text-slate-300 font-normal hover:text-white'
+                            : 'text-slate-500 font-normal hover:text-slate-900'
                       )}
                     >
-                      <nav className="py-4 px-3" aria-label="Page links">
-                        {navLinks.map(({ label, href }, i) => {
-                          const isActive = active === href
-                          return (
-                            <motion.button
-                              key={href}
-                              variants={itemVariants}
-                              onClick={() => handleNav(href)}
-                              aria-current={isActive ? 'page' : undefined}
-                              className={cn(
-                                'group flex w-full items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-colors duration-150',
-                                isActive
-                                  ? dark
-                                    ? 'bg-white/[0.08] text-white'
-                                    : 'bg-slate-50 text-slate-900'
-                                  : dark
-                                    ? 'text-slate-200 hover:bg-white/[0.05] hover:text-white'
-                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                              )}
-                            >
-                              {/* Index number */}
-                              <span className={cn(
-                                'font-mono text-[11px] tabular-nums shrink-0 leading-none w-4 text-right',
-                                isActive
-                                  ? dark ? 'text-slate-500' : 'text-slate-400'
-                                  : dark ? 'text-slate-600' : 'text-slate-400'
-                              )}>
-                                {String(i + 1).padStart(2, '0')}
-                              </span>
+                      {label}
+                    </button>
+                  )
+                })}
+              </motion.div>
 
-                              {/* Thin divider */}
-                              <span className={cn(
-                                'h-3.5 w-px shrink-0',
-                                dark ? 'bg-white/[0.08]' : 'bg-slate-200'
-                              )} aria-hidden="true" />
-
-                              {/* Label */}
-                              <span className={cn(
-                                'text-[17px] tracking-tight leading-none',
-                                isActive ? 'font-medium' : 'font-normal'
-                              )}>
-                                {label}
-                              </span>
-                            </motion.button>
-                          )
-                        })}
-                      </nav>
-
-                      {/* Divider */}
-                      <div className={cn(
-                        'mx-4 h-px',
-                        dark ? 'bg-white/[0.07]' : 'bg-slate-100'
-                      )} />
-
-                      {/* Résumé link */}
-                      <motion.div variants={itemVariants} className="py-4 px-3">
-                        <a
-                          href="/Vishal_Resume.pdf"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={cn(
-                            'group flex w-full items-center gap-4 px-4 py-3.5 rounded-xl transition-colors duration-150',
-                            dark
-                              ? 'text-slate-200 hover:bg-white/[0.05] hover:text-white'
-                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                          )}
-                        >
-                          <span className={cn(
-                            'font-mono text-[11px] tabular-nums shrink-0 leading-none w-4 text-right',
-                            dark ? 'text-slate-600' : 'text-slate-400'
-                          )}>
-                            ↗
-                          </span>
-
-                          <span className={cn(
-                            'h-3.5 w-px shrink-0',
-                            dark ? 'bg-white/[0.08]' : 'bg-slate-200'
-                          )} aria-hidden="true" />
-
-                          <span className="text-[17px] font-normal tracking-tight leading-none">
-                            Résumé
-                          </span>
-
-                          <svg
-                            className="ml-auto opacity-30 group-hover:opacity-70 transition-opacity duration-150"
-                            width="11" height="11" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                            aria-hidden="true"
-                          >
-                            <path d="M7 17L17 7"/><path d="M7 7h10v10"/>
-                          </svg>
-                        </a>
-                      </motion.div>
-                    </motion.div>
-                  </>
+              {/* Divider between links and toggle */}
+              <motion.span
+                aria-hidden="true"
+                animate={{ opacity: scrolled ? 1 : 0, scaleY: scrolled ? 1 : 0.5 }}
+                transition={fadeTransition}
+                className={cn(
+                  'h-4 w-px shrink-0 origin-center mx-2',
+                  dark ? 'bg-white/[0.15]' : 'bg-slate-200'
                 )}
-              </AnimatePresence>
+              />
             </div>
-          </motion.div>
+
+            {/* ══ SHARED: pill wrapper for toggle + mobile hamburger ══ */}
+            <motion.div
+              className="relative flex items-center rounded-full"
+              animate={pillActive
+                ? dark
+                  ? {
+                      backgroundColor: 'rgba(255,255,255,0.07)',
+                      borderColor: 'rgba(255,255,255,0.10)',
+                      boxShadow: '0 2px 20px rgba(0,0,0,0.45)',
+                      paddingLeft: '2px',
+                      paddingRight: '2px',
+                    }
+                  : {
+                      backgroundColor: 'rgba(255,255,255,0.90)',
+                      borderColor: 'rgba(148,163,184,0.5)',
+                      boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+                      paddingLeft: '2px',
+                      paddingRight: '2px',
+                    }
+                : {
+                    backgroundColor: 'rgba(255,255,255,0)',
+                    borderColor: 'rgba(255,255,255,0)',
+                    boxShadow: '0 0px 0px rgba(0,0,0,0)',
+                    paddingLeft: '0px',
+                    paddingRight: '0px',
+                  }
+              }
+              transition={pillTransition}
+              style={{
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                backdropFilter: 'blur(14px)',
+                WebkitBackdropFilter: 'blur(14px)',
+              }}
+            >
+              {/* Dark mode toggle */}
+              <motion.button
+                onClick={toggle}
+                whileTap={{ scale: 0.88 }}
+                aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+                className={cn(
+                  'relative flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
+                  dark ? 'text-slate-300 hover:text-yellow-300' : 'text-slate-500 hover:text-indigo-600',
+                )}
+              >
+                <AnimatePresence initial={false}>
+                  {dark ? (
+                    <motion.span
+                      key="sun"
+                      initial={{ rotate: -30, opacity: 0, scale: 0.7 }}
+                      animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                      exit={{ rotate: 30, opacity: 0, scale: 0.7 }}
+                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ position: 'absolute' }}
+                    >
+                      <SunIcon />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="moon"
+                      initial={{ rotate: 30, opacity: 0, scale: 0.7 }}
+                      animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                      exit={{ rotate: -30, opacity: 0, scale: 0.7 }}
+                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ position: 'absolute' }}
+                    >
+                      <MoonIcon />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+
+              {/* Divider — only shown on mobile */}
+              <motion.span
+                aria-hidden="true"
+                animate={{ opacity: pillActive ? 1 : 0, scaleY: pillActive ? 1 : 0.5 }}
+                transition={fadeTransition}
+                className={cn(
+                  'h-4 w-px shrink-0 origin-center md:hidden',
+                  dark ? 'bg-white/[0.15]' : 'bg-slate-200'
+                )}
+              />
+
+              {/* ══ Hamburger — mobile only ══ */}
+              <div className="relative md:hidden">
+                <button
+                  onClick={() => setOpen((o) => !o)}
+                  aria-label={open ? 'Close menu' : 'Open menu'}
+                  aria-expanded={open}
+                  aria-controls="nav-drawer"
+                  className={cn(
+                    'flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
+                    open
+                      ? dark ? 'text-white' : 'text-slate-800'
+                      : dark ? 'text-slate-300 hover:text-white' : 'text-slate-500 hover:text-slate-800',
+                  )}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    {open ? (
+                      <motion.svg
+                        key="close"
+                        initial={{ rotate: -45, opacity: 0, scale: 0.7 }}
+                        animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                        exit={{ rotate: 45, opacity: 0, scale: 0.7 }}
+                        transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                        aria-hidden="true"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </motion.svg>
+                    ) : (
+                      <motion.svg
+                        key="open"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+                        width="17" height="11" viewBox="0 0 17 11" fill="none"
+                        aria-hidden="true"
+                      >
+                        <line x1="0" y1="1"   x2="17" y2="1"   stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                        <line x1="0" y1="5.5" x2="11" y2="5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                        <line x1="0" y1="10"  x2="17" y2="10"  stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                      </motion.svg>
+                    )}
+                  </AnimatePresence>
+                </button>
+
+                {/* ── Mobile dropdown menu ── */}
+                <AnimatePresence>
+                  {open && (
+                    <>
+                      <motion.div
+                        key="backdrop"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="fixed inset-0 z-[-1]"
+                        onClick={() => setOpen(false)}
+                      />
+
+                      <motion.div
+                        id="nav-drawer"
+                        key="drawer"
+                        variants={drawerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        role="dialog"
+                        aria-label="Navigation menu"
+                        style={{
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                        }}
+                        className={cn(
+                          'absolute right-0 top-[calc(100%+12px)]',
+                          'w-[calc(100vw-2rem)] max-w-[240px] sm:w-[240px]',
+                          'rounded-2xl overflow-hidden',
+                          dark
+                            ? 'bg-[#0d0d1a] border border-white/[0.10] shadow-[0_20px_60px_rgba(0,0,0,0.8)]'
+                            : 'bg-white/95 border border-slate-200 shadow-[0_20px_60px_rgba(0,0,0,0.12)]'
+                        )}
+                      >
+                        <nav className="py-4 px-3" aria-label="Page links">
+                          {navLinks.map(({ label, href }, i) => {
+                            const isActive = active === href
+                            return (
+                              <motion.button
+                                key={href}
+                                variants={itemVariants}
+                                onClick={() => handleNav(href)}
+                                aria-current={isActive ? 'page' : undefined}
+                                className={cn(
+                                  'group flex w-full items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-colors duration-150',
+                                  isActive
+                                    ? dark
+                                      ? 'bg-white/[0.06] text-white/75'
+                                      : 'bg-slate-100/70 text-slate-700'
+                                    : dark
+                                      ? 'text-slate-300 hover:bg-white/[0.07] hover:text-white'
+                                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                )}
+                              >
+                                <span className={cn(
+                                  'font-mono text-[11px] tabular-nums shrink-0 leading-none w-4 text-right',
+                                  isActive
+                                    ? dark ? 'text-slate-400' : 'text-slate-400'
+                                    : dark ? 'text-slate-500' : 'text-slate-400'
+                                )}>
+                                  {String(i + 1).padStart(2, '0')}
+                                </span>
+
+                                <span className={cn(
+                                  'h-3.5 w-px shrink-0',
+                                  dark ? 'bg-white/[0.12]' : 'bg-slate-200'
+                                )} aria-hidden="true" />
+
+                                <span className={cn(
+                                  'text-[17px] tracking-tight leading-none',
+                                  isActive ? 'font-medium' : 'font-normal'
+                                )}>
+                                  {label}
+                                </span>
+                              </motion.button>
+                            )
+                          })}
+                        </nav>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </div>
         </nav>
       </header>
     </>

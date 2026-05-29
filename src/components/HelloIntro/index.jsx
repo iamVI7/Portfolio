@@ -19,7 +19,7 @@ export function HelloIntro({ onDone }) {
     if (doneRef.current) return
     doneRef.current = true
     setLeaving(true)
-    setTimeout(onDone, 500)
+    setTimeout(onDone, 900)
   }
 
   useEffect(() => {
@@ -30,44 +30,64 @@ export function HelloIntro({ onDone }) {
   useEffect(() => {
     if (phase !== 'entering') return
 
+    const isLast = indexRef.current >= hellos.length - 1
+
+    if (isLast) {
+      const t = setTimeout(() => {
+        setPhase('visible')
+        const hold = setTimeout(() => {
+          if (doneRef.current) return
+          doneRef.current = true
+          setLeaving(true)
+          setTimeout(onDone, 900)
+        }, 1500)
+        return () => clearTimeout(hold)
+      }, 60)
+      return () => clearTimeout(t)
+    }
+
     const t = setTimeout(() => {
       setPhase('visible')
 
-      const hold = setTimeout(() => {
+      const off = setTimeout(() => {
         if (doneRef.current) return
+        setPhase('hidden')
 
-        if (indexRef.current >= hellos.length - 1) {
-          setTimeout(() => {
-            if (!doneRef.current) {
-              doneRef.current = true
-              setLeaving(true)
-              setTimeout(onDone, 500)
-            }
-          }, 200)
-          return
-        }
-
-        setPhase('exiting')
-        setTimeout(() => {
+        const next = setTimeout(() => {
           indexRef.current += 1
           setCurrent(indexRef.current)
           setPhase('entering')
-        }, 320)
-      }, 480)
+        }, 60)
 
-      return () => clearTimeout(hold)
-    }, 400)
+        return () => clearTimeout(next)
+      }, 200)
+
+      return () => clearTimeout(off)
+    }, 40)
 
     return () => clearTimeout(t)
   }, [phase, current])
 
+  const isLast   = current === hellos.length - 1
   const isIndigo = current % 2 !== 0
 
   const animStyle = (() => {
-    if (phase === 'hidden')   return { opacity: 0, transform: 'translateX(-50%) translateY(10px)' }
-    if (phase === 'entering') return { animation: 'wordIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards' }
-    if (phase === 'visible')  return { opacity: 1, transform: 'translateX(-50%) translateY(0)' }
-    if (phase === 'exiting')  return { animation: 'wordOut 0.3s cubic-bezier(0.4,0,1,1) forwards' }
+    if (phase === 'hidden')   return {
+      opacity: 0,
+      transform: 'translateX(-50%) translateY(-50%) scale(1.15)',
+    }
+    if (phase === 'entering') return {
+      opacity: 0,
+      transform: 'translateX(-50%) translateY(-50%) scale(1.15)',
+    }
+    if (phase === 'visible')  return {
+      opacity: 1,
+      transform: 'translateX(-50%) translateY(-50%) scale(1)',
+      transition: isLast
+        ? 'opacity 0.15s ease-out, transform 0.22s cubic-bezier(0.16,1,0.3,1)'
+        : 'opacity 0.06s ease-out, transform 0.09s cubic-bezier(0.16,1,0.3,1)',
+      ...(isLast ? { textShadow: '0 0 80px rgba(79,82,160,0.25)' } : {}),
+    }
   })()
 
   return (
@@ -75,14 +95,6 @@ export function HelloIntro({ onDone }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400&display=swap');
 
-        @keyframes wordIn {
-          from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-          to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
-        }
-        @keyframes wordOut {
-          from { opacity: 1; transform: translateX(-50%) translateY(0);    }
-          to   { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-        }
         @keyframes overlayOut {
           from { opacity: 1; }
           to   { opacity: 0; }
@@ -124,10 +136,13 @@ export function HelloIntro({ onDone }) {
           alignItems: 'center',
           justifyContent: 'center',
           background: '#f4f2ee',
-          ...(leaving ? { animation: 'overlayOut 0.5s cubic-bezier(0.22,1,0.36,1) forwards' } : {}),
+          ...(leaving ? { animation: 'overlayOut 0.9s cubic-bezier(0.4,0,0.2,1) forwards' } : {}),
         }}
       >
-        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.018, pointerEvents: 'none' }} aria-hidden="true">
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.018, pointerEvents: 'none' }}
+          aria-hidden="true"
+        >
           <filter id="grain">
             <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
             <feColorMatrix type="saturate" values="0" />
@@ -142,9 +157,10 @@ export function HelloIntro({ onDone }) {
               position: 'absolute',
               left: '50%',
               top: '50%',
-              transform: 'translateX(-50%) translateY(-50%)',
               fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: 'clamp(1.7rem, 5.5vw, 3.4rem)',
+              fontSize: isLast
+                ? 'clamp(2.2rem, 7vw, 4.2rem)'
+                : 'clamp(1.7rem, 5.5vw, 3.4rem)',
               fontWeight: 400,
               color: isIndigo ? '#4f52a0' : '#1a1916',
               lineHeight: 1,

@@ -81,19 +81,17 @@ function ProjectCard({ project, index }) {
 
 // ─── Stack offsets: back cards peek from the right ────────────────────────────
 const STACK_OFFSETS = [
-  { tx: 32, ty: 0, rotate: 0, scale: 0.93, z: 1 },
-  { tx: 16, ty: 0, rotate: 0, scale: 0.96, z: 2 },
-  { tx:  0, ty: 0, rotate: 0, scale: 1.00, z: 3 },
+  { tx: 42, ty: 0, rotate: 0, scale: 0.93, z: 1 },
+  { tx: 26, ty: 0, rotate: 0, scale: 0.96, z: 2 },
+  { tx: 10, ty: 0, rotate: 0, scale: 1.00, z: 3 },
 ]
 
-function MobileStack({ projects: items }) {
-  // Initialize reversed so index 0 is at the end (front), cycling 0→1→2→0
+function MobileStack({ projects: items, dark }) {
   const [order, setOrder]       = useState(items.map((_, i) => i).reverse())
   const [dragging, setDragging] = useState(false)
   const [dragX, setDragX]       = useState(0)
   const startXRef               = useRef(0)
 
-  // front card is always last element in order array
   const frontIdx = order[order.length - 1]
 
   const cycleNext = useCallback(() => {
@@ -124,11 +122,9 @@ function MobileStack({ projects: items }) {
   }
 
   return (
-    <div className="sm:hidden flex flex-col items-center">
-
-      {/* Stack scene */}
-      <div style={{ width: 310, height: 420, position: 'relative' }}>
-        <div className="relative w-full h-full" style={{ overflow: 'visible' }}>
+    <div className="sm:hidden flex flex-col items-center w-full">
+      <div style={{ width: 330, height: 420, position: 'relative', margin: '0 auto' }}>
+        <div className="relative h-full" style={{ overflow: 'visible', width: 292, margin: '0 auto' }}>
           {order.map((projectIdx, stackPos) => {
             const isFront = stackPos === order.length - 1
             const { tx, ty, rotate, scale, z } = STACK_OFFSETS[Math.min(stackPos, 2)]
@@ -248,11 +244,33 @@ function MobileStack({ projects: items }) {
         })}
       </div>
 
-      {/* Counter — derived from frontIdx, always in sync with active dot */}
+      {/* Counter */}
       <p className="mt-2.5 font-mono text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500">
         swipe to explore · {frontIdx + 1} / {items.length}
       </p>
 
+      {/* See more button — mobile only, below the stack */}
+      <a
+        href="https://github.com/iamVI7?tab=repositories"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(
+          'group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-200 whitespace-nowrap mt-6',
+          dark
+            ? 'bg-slate-100 text-slate-900 hover:bg-white shadow-[0_4px_20px_rgba(99,102,241,0.18)]'
+            : 'bg-slate-900 text-white hover:bg-black shadow-[0_4px_16px_rgba(15,15,20,0.14)]'
+        )}
+      >
+        See more
+        <svg
+          className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M7 17L17 7" /><path d="M7 7h10v10" />
+        </svg>
+      </a>
     </div>
   )
 }
@@ -296,12 +314,13 @@ export function Projects() {
             </p>
           </div>
 
+          {/* See more — desktop only (hidden on mobile, shown inside MobileStack) */}
           <a
             href="https://github.com/iamVI7?tab=repositories"
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              'group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-200 whitespace-nowrap shrink-0 self-start sm:self-auto',
+              'hidden sm:inline-flex group items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-200 whitespace-nowrap shrink-0 self-start sm:self-auto',
               dark
                 ? 'bg-slate-100 text-slate-900 hover:bg-white shadow-[0_4px_20px_rgba(99,102,241,0.18)]'
                 : 'bg-slate-900 text-white hover:bg-black shadow-[0_4px_16px_rgba(15,15,20,0.14)]'
@@ -319,8 +338,8 @@ export function Projects() {
           </a>
         </motion.div>
 
-        {/* Mobile: swipe stack */}
-        <MobileStack projects={projects} />
+        {/* Mobile: swipe stack (includes See more button at bottom) */}
+        <MobileStack projects={projects} dark={dark} />
 
         {/* Desktop: 3-col grid */}
         <div className="hidden sm:grid gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">

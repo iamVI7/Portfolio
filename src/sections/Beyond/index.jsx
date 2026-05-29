@@ -6,7 +6,6 @@ const ITEMS = [
   { label: 'Exercise' },
   { label: 'Music' },
   { label: 'Gaming' },
-  { label: 'Crafting' },
   { label: 'Drawing' },
   { label: 'Movies' },
   { label: 'Design' },
@@ -18,16 +17,16 @@ function MarqueeItem({ label }) {
   return (
     <span className="inline-flex items-center whitespace-nowrap select-none">
       <span
-        className="font-serif italic font-light tracking-tight text-white"
-        style={{ fontSize: 'clamp(1rem, 1.8vw, 1.6rem)' }}
+        className="font-serif italic font-light tracking-tight text-slate-500 dark:text-slate-400"
+        style={{ fontSize: 'clamp(1.2rem, 2vw, 1.8rem)' }}
       >
         {label}
       </span>
       <span
+        className="text-slate-300 dark:text-slate-600"
         style={{
-          color: 'rgba(255,255,255,0.5)',
-          fontSize: 'clamp(0.65rem, 1vw, 0.85rem)',
-          margin: '0 clamp(18px, 3vw, 36px)',
+          fontSize: 'clamp(0.5rem, 0.8vw, 0.7rem)',
+          margin: '0 clamp(20px, 3.5vw, 40px)',
           lineHeight: 1,
         }}
       >
@@ -47,12 +46,13 @@ export function Beyond() {
       id="beyond"
       aria-labelledby="beyond-heading"
       ref={ref}
-      className="relative overflow-hidden py-16 sm:py-24 flex flex-col gap-16"
+      className="relative overflow-hidden py-16 sm:py-20 flex flex-col gap-8"
     >
       <Container size="lg">
-        <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-indigo-400 dark:text-indigo-500">
+        <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-indigo-400 dark:text-indigo-500">
           Beyond the keyboard
         </p>
+
         <h2
           id="beyond-heading"
           className="font-serif text-[38px] sm:text-[50px] font-normal leading-[1.05] tracking-tight text-slate-900 dark:text-slate-100"
@@ -61,20 +61,15 @@ export function Beyond() {
         </h2>
       </Container>
 
-      {/* ── Single indigo marquee strip ── */}
+      {/* Marquee strip */}
       <div
         aria-hidden="true"
-        style={{
-          transform: 'rotate(-4deg)',
-          margin: '0 -12%',
-          width: '124%',
-          background: '#6366f1',
-          overflow: 'hidden',
-          boxShadow: '0 12px 28px -4px rgba(99, 102, 241, 0.4)',
-          maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
-        }}
+        className="relative"
+        style={{ overflow: 'hidden' }}
       >
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#f8f7f4] dark:from-[#0a0a0a] to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#f8f7f4] dark:from-[#0a0a0a] to-transparent" />
+
         <style>{`
           @keyframes marquee {
             from { transform: translateX(0); }
@@ -84,11 +79,11 @@ export function Beyond() {
             display: flex;
             align-items: center;
             width: max-content;
-            animation: marquee 80s linear infinite;
+            animation: marquee 50s linear infinite;
           }
         `}</style>
 
-        <div style={{ padding: '1.4rem 0' }}>
+        <div style={{ padding: '0.9rem 0' }}>
           <div className="marquee-track">
             {[...repeated, ...repeated].map((item, i) => (
               <MarqueeItem key={i} {...item} />
@@ -96,36 +91,6 @@ export function Beyond() {
           </div>
         </div>
       </div>
-
-      <Container size="lg">
-        <div className="border-t border-slate-200 dark:border-slate-800 pt-8 sm:pt-10">
-          <p className="font-serif italic text-[clamp(0.85rem,1.5vw,1.1rem)] text-slate-400 dark:text-slate-600 mb-5">
-            A quote I live by
-          </p>
-
-          <div className="flex flex-col items-center text-center">
-            <div className="relative">
-              <span
-                className="absolute top-0 -left-6 sm:-left-8 font-serif text-indigo-200 dark:text-indigo-900 select-none"
-                style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1 }}
-                aria-hidden="true"
-              >
-                "
-              </span>
-              <p
-                className="font-serif font-normal leading-[1.05] tracking-tight text-slate-900 dark:text-slate-100"
-                style={{ fontSize: 'clamp(2rem, 5vw, 4.2rem)' }}
-              >
-                <em className="not-italic text-indigo-500 dark:text-indigo-400">Disrupt</em>
-                {' '}
-                <em className="italic text-slate-900 dark:text-slate-100">with</em>
-                {' '}
-                <em className="not-italic text-violet-500 dark:text-violet-400">purpose.</em>
-              </p>
-            </div>
-          </div>
-        </div>
-      </Container>
 
       <ul className="sr-only">
         {ITEMS.map((item) => (

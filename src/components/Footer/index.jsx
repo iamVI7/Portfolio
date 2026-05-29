@@ -45,16 +45,6 @@ export function Footer() {
       <Container size="lg">
         <div className="flex flex-col items-center gap-6 py-8 sm:flex-row sm:items-center sm:justify-between">
 
-          {/* Left — signature */}
-          <div className="flex items-center justify-center">
-            <img
-              src="/signature.png"
-              alt="Vishal's signature"
-              className="h-28 w-auto opacity-70 dark:opacity-60 dark:invert mix-blend-multiply dark:mix-blend-screen select-none pointer-events-none"
-              draggable={false}
-            />
-          </div>
-
           {/* Centre — nav links */}
           <nav aria-label="Footer navigation">
             <ul className="flex flex-wrap justify-center items-center gap-5">

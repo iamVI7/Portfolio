@@ -11,32 +11,15 @@ const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
 
 const TOPICS = ['defence', 'sci-fi', 'tech', 'India', 'astronomy', 'startups', 'space', 'the future']
 
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
-}
-
 const fadeUp = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] } },
-}
-
-const backdropVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.25 } },
-  exit: { opacity: 0, transition: { duration: 0.2, delay: 0.05 } },
-}
-
-const modalVariants = {
-  hidden: { opacity: 0, scale: 0.96, y: 12 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.3, ease: [0.32, 0.72, 0, 1] } },
-  exit: { opacity: 0, scale: 0.97, y: 8, transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } },
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] } },
 }
 
 const topicVariants = {
-  enter: { opacity: 0, y: 10, filter: 'blur(4px)' },
-  center: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] } },
-  exit: { opacity: 0, y: -10, filter: 'blur(4px)', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } },
+  enter: { opacity: 0, y: 8 },
+  center: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.25, ease: [0.4, 0, 1, 1] } },
 }
 
 function RotatingTopic() {
@@ -147,17 +130,19 @@ function ContactModal({ open, onClose, dark }) {
     <AnimatePresence>
       {open && (
         <>
+          {/* Backdrop */}
           <motion.div
             key="backdrop"
-            variants={backdropVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
             onClick={handleClose}
             aria-hidden="true"
           />
 
+          {/* Modal */}
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             role="dialog"
@@ -166,10 +151,10 @@ function ContactModal({ open, onClose, dark }) {
           >
             <motion.div
               key="modal"
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
               onClick={(e) => e.stopPropagation()}
               className={cn(
                 'relative w-full max-w-[480px] rounded-2xl shadow-2xl',
@@ -182,10 +167,10 @@ function ContactModal({ open, onClose, dark }) {
                 {sent ? (
                   <motion.div
                     key="success"
-                    initial={{ opacity: 0, scale: 0.97 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.25 }}
                     className="flex flex-col items-center justify-center py-16 px-8 text-center"
                     role="status"
                     aria-live="polite"
@@ -291,12 +276,15 @@ function ContactModal({ open, onClose, dark }) {
                       </AnimatePresence>
 
                       <button
-                        type="button" disabled={loading} onClick={handleSubmit}
+                        type="button"
+                        disabled={loading}
+                        onClick={handleSubmit}
                         className={cn(
-                          'flex w-full items-center justify-center gap-2 rounded-lg px-5 py-3',
-                          'text-[14px] font-medium transition-all duration-200 disabled:opacity-60',
-                          'bg-slate-900 hover:bg-black text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100',
-                          'shadow-[0_2px_12px_rgba(0,0,0,0.15)]'
+                          'group inline-flex items-center justify-center gap-2 rounded-full px-6 py-3',
+                          'text-[14px] font-medium transition-all duration-200 disabled:opacity-60 w-full',
+                          dark
+                            ? 'bg-slate-100 text-slate-900 hover:bg-white shadow-[0_4px_20px_rgba(99,102,241,0.15)]'
+                            : 'bg-slate-900 text-white hover:bg-black shadow-[0_4px_16px_rgba(15,15,20,0.14)]'
                         )}
                       >
                         {loading ? (
@@ -309,7 +297,17 @@ function ContactModal({ open, onClose, dark }) {
                             Sending…
                           </>
                         ) : (
-                          'Send message'
+                          <>
+                            Send message
+                            <svg
+                              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                              width="13" height="13" viewBox="0 0 24 24" fill="none"
+                              stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M7 17L17 7" /><path d="M7 7h10v10" />
+                            </svg>
+                          </>
                         )}
                       </button>
                     </div>
@@ -339,26 +337,21 @@ export function Contact() {
     >
       <Container size="lg">
         <motion.div
-          variants={stagger}
           initial="hidden"
           animate={inView ? 'visible' : 'hidden'}
+          variants={fadeUp}
         >
-          {/* ── Pill container ── */}
-          <motion.div
-            variants={fadeUp}
-            className={cn(
-              'rounded-2xl border border-slate-100 dark:border-white/[0.06]',
-              'bg-white dark:bg-white/[0.025]',
-              'px-6 py-7 sm:px-10 sm:py-9',
-              'shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
-            )}
-          >
-            {/* Eyebrow */}
+          {/* ── Card — border softened, no shadow ── */}
+          <div className={cn(
+            'rounded-2xl',
+            'px-6 py-7 sm:px-10 sm:py-9',
+            dark
+              ? 'border border-white/[0.04] bg-white/[0.015]'
+              : 'border border-slate-100/70 bg-white/60',
+          )}>
+            {/* Eyebrow — indigo, matching Beyond section */}
             <div className="mb-4 flex items-center gap-2.5">
-              <span className={cn(
-                'font-mono text-[11px] font-medium uppercase tracking-widest',
-                dark ? 'text-slate-500' : 'text-slate-400'
-              )}>
+              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-indigo-400 dark:text-indigo-500">
                 Let's connect
               </span>
             </div>
@@ -376,16 +369,16 @@ export function Contact() {
                 >
                   <span className="text-[30px] sm:text-[38px]">Got something in mind?</span>
                   <br />
+                  {/* "Let's talk about" is faded; rotating topic stays vivid */}
                   <span className="inline-block mt-3 text-[22px] sm:text-[28px] whitespace-nowrap">
-                    Let's talk{' '}
-                    <span className="inline-flex items-baseline gap-0">
-                      <span className={cn(
-                        'italic font-normal',
-                        dark ? 'text-slate-100' : 'text-slate-900'
-                      )}>about </span>
-                      <span className="ml-1.5">
-                        <RotatingTopic />
-                      </span>
+                    <span className={cn(
+                      'font-serif font-normal italic',
+                      dark ? 'text-slate-500' : 'text-slate-400'
+                    )}>
+                      Let's talk about{' '}
+                    </span>
+                    <span className="ml-0.5">
+                      <RotatingTopic />
                     </span>
                   </span>
                 </h2>
@@ -414,7 +407,7 @@ export function Contact() {
                 </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         </motion.div>
       </Container>
 
