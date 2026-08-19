@@ -1,8 +1,15 @@
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { announceModalOpen } from '../../../utils/modalBus'
 
 const ease = [0.16, 1, 0.3, 1]
 
 export function Lightbox({ cert, onClose }) {
+  useEffect(() => {
+    announceModalOpen(!!cert)
+    return () => announceModalOpen(false)
+  }, [cert])
+
   return (
     <AnimatePresence>
       {cert && (

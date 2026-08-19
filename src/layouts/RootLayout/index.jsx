@@ -1,6 +1,7 @@
 import { Navbar } from '../../components/Navbar'
 import { Footer } from '../../components/Footer'
 import { CustomCursor } from '../../components/CustomCursor'
+import { TicTacToeFab } from '../../components/TicTacToeFab'
 
 export function RootLayout({ children }) {
   return (
@@ -11,6 +12,7 @@ export function RootLayout({ children }) {
         {children}
       </main>
       <Footer />
+      <TicTacToeFab />
     </div>
   )
 }

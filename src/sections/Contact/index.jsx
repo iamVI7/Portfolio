@@ -4,6 +4,7 @@ import emailjs from '@emailjs/browser'
 import { Container } from '../../ui/Container'
 import { cn } from '../../utils/cn'
 import { useTheme } from '../../context/ThemeContext'
+import { announceModalOpen } from '../../utils/modalBus'
 
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
@@ -69,6 +70,11 @@ function ContactModal({ open, onClose, dark }) {
     if (open) document.body.style.overflow = 'hidden'
     else document.body.style.overflow = ''
     return () => { document.body.style.overflow = '' }
+  }, [open])
+
+  useEffect(() => {
+    announceModalOpen(open)
+    return () => announceModalOpen(false)
   }, [open])
 
   useEffect(() => {
