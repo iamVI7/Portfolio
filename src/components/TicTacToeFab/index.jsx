@@ -103,6 +103,13 @@ export function TicTacToeFab() {
     if (suppressed) setOpen(false)
   }, [suppressed])
 
+  // Lock background scroll while the game panel is open (matches ContactModal).
+  useEffect(() => {
+    if (open) document.body.style.overflow = 'hidden'
+    else document.body.style.overflow = ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
   const result = useMemo(() => getWinner(board), [board])
 
   const handleOpen = () => {
@@ -276,7 +283,7 @@ export function TicTacToeFab() {
               )}
               <Gamepad2 className="relative h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
               <span className="relative text-xs font-semibold tracking-tight leading-none sm:hidden">
-                Bet you can't beat me 😏
+                Play me. I dare you.
               </span>
             </motion.button>
           )}

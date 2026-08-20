@@ -10,6 +10,12 @@ export function Lightbox({ cert, onClose }) {
     return () => announceModalOpen(false)
   }, [cert])
 
+  useEffect(() => {
+    if (cert) document.body.style.overflow = 'hidden'
+    else document.body.style.overflow = ''
+    return () => { document.body.style.overflow = '' }
+  }, [cert])
+
   return (
     <AnimatePresence>
       {cert && (
