@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Gamepad2, X, RotateCcw } from 'lucide-react'
+import { Gamepad2, X, RotateCcw, Sun, Moon } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { subscribeModalVisibility } from '../../utils/modalBus'
+import { useTheme } from '../../context/ThemeContext'
 
 /**
  * TicTacToeFab
@@ -84,6 +85,7 @@ function bestMove(board) {
 const EMPTY_BOARD = Array(9).fill(null)
 
 export function TicTacToeFab() {
+  const { dark, toggle } = useTheme()
   const [open, setOpen] = useState(false)
   const [board, setBoard] = useState(EMPTY_BOARD)
   const [thinking, setThinking] = useState(false)
@@ -212,7 +214,50 @@ export function TicTacToeFab() {
   return (
     <>
       {/* Floating trigger — wide navbar-style pill on mobile, corner icon on desktop */}
-      <div className="fixed z-[70] bottom-5 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-8 sm:bottom-8 flex items-center gap-3 sm:flex-row-reverse">
+      <div className="fixed z-[70] bottom-5 inset-x-0 justify-center sm:inset-x-auto sm:justify-start sm:left-auto sm:right-8 sm:bottom-8 flex items-center gap-3 sm:flex-row-reverse">
+        {/* Dark mode toggle — its own circle, mobile only, sits beside the play pill */}
+        <AnimatePresence>
+          {!open && (
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.92 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              onClick={toggle}
+              aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="sm:hidden flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav text-slate-500 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-yellow-300 transition-colors"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {dark ? (
+                  <motion.span
+                    key="sun"
+                    initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                    exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex"
+                  >
+                    <Sun className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="moon"
+                    initial={{ opacity: 0, rotate: 90, scale: 0.5 }}
+                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                    exit={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex"
+                  >
+                    <Moon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence>
           {!open && (
             <motion.button
@@ -224,14 +269,14 @@ export function TicTacToeFab() {
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               onClick={handleOpen}
               aria-label="Play tic-tac-toe against Vishal"
-              className="relative flex h-14 shrink-0 items-center justify-center gap-2.5 rounded-full px-8 sm:w-14 sm:h-14 sm:px-0 bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav sm:shadow-pill sm:bg-indigo-50/70 sm:dark:bg-indigo-500/10 sm:border-indigo-200 sm:dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+              className="relative flex h-12 shrink-0 items-center justify-center gap-2 rounded-full px-6 sm:w-12 sm:h-12 sm:px-0 bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav sm:shadow-pill sm:bg-indigo-50/70 sm:dark:bg-indigo-500/10 sm:border-indigo-200 sm:dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
             >
               {!hasOpened && (
                 <span className="absolute inset-0 rounded-full border border-indigo-400/50 animate-pulse-slow" />
               )}
-              <Gamepad2 className="relative h-5 w-5 shrink-0" strokeWidth={1.75} />
-              <span className="relative text-sm font-semibold tracking-tight leading-none sm:hidden">
-                Play Tic-Tac-Toe
+              <Gamepad2 className="relative h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
+              <span className="relative text-xs font-semibold tracking-tight leading-none sm:hidden">
+                Bet you can't beat me 😏
               </span>
             </motion.button>
           )}
@@ -279,25 +324,44 @@ export function TicTacToeFab() {
         )}
       </div>
 
-      {/* Game panel */}
+      {/* Backdrop — mobile only, gives the panel a proper bottom-sheet feel */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+            className="fixed inset-0 z-[69] bg-slate-900/40 backdrop-blur-[2px] sm:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Game panel — floating card on desktop, bottom sheet on mobile */}
       <AnimatePresence>
         {open && (
           <motion.div
             ref={panelRef}
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             role="dialog"
             aria-label="Tic-tac-toe against Vishal"
             className={cn(
               'fixed z-[70]',
-              'bottom-5 right-5 left-5 sm:left-auto sm:bottom-8 sm:right-8',
-              'w-auto sm:w-[340px]',
-              'rounded-[28px] border bg-white dark:bg-[#0f0f1a] border-indigo-100/70 dark:border-white/10',
-              'shadow-card dark:shadow-card-dark p-5 sm:p-6'
+              'inset-x-0 bottom-0 sm:inset-x-auto sm:bottom-8 sm:right-8',
+              'w-full sm:w-[340px]',
+              'rounded-t-[28px] rounded-b-none sm:rounded-[28px]',
+              'border border-b-0 sm:border-b bg-white dark:bg-[#0f0f1a] border-indigo-100/70 dark:border-white/10',
+              'shadow-card dark:shadow-card-dark p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:p-6'
             )}
           >
+            {/* Drag handle — mobile bottom-sheet affordance, hidden on desktop */}
+            <div className="sm:hidden mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-200 dark:bg-white/15" />
+
             <div className="flex items-center justify-between mb-1">
               <div>
                 <p className="text-[11px] uppercase tracking-widest text-indigo-500 font-semibold">

@@ -46,7 +46,7 @@ export const journey = [
     isNow: true,
     title: 'Looking for the Right First Role',
     description:
-      'Infosys training done. Seeking a full-stack or product role where I can contribute from day one. Not chasing titles — just want to build things that matter.',
+      'Seeking a full-stack or product role where I can contribute from day one. Not chasing titles — just want to build things that matter.',
     meta: [],
   },
 ]
