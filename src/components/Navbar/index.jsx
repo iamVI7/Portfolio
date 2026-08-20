@@ -110,45 +110,44 @@ export function Navbar() {
             </span>
           </motion.button>
 
-          {/* ── Right side: desktop inline links + toggle | mobile pill with hamburger ── */}
-          <div className="flex items-center gap-2">
-
-            {/* ══ DESKTOP: inline nav links (hidden on mobile) ══ */}
-            <div className="hidden md:flex items-center">
-              <motion.div
-                className="flex items-center rounded-full"
-                animate={scrolled
-                  ? dark
-                    ? {
-                        backgroundColor: 'rgba(255,255,255,0.07)',
-                        borderColor: 'rgba(255,255,255,0.10)',
-                        boxShadow: '0 2px 20px rgba(0,0,0,0.45)',
-                        paddingLeft: '6px',
-                        paddingRight: '6px',
-                      }
-                    : {
-                        backgroundColor: 'rgba(255,255,255,0.90)',
-                        borderColor: 'rgba(148,163,184,0.5)',
-                        boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
-                        paddingLeft: '6px',
-                        paddingRight: '6px',
-                      }
-                  : {
-                      backgroundColor: 'rgba(255,255,255,0)',
-                      borderColor: 'rgba(255,255,255,0)',
-                      boxShadow: '0 0px 0px rgba(0,0,0,0)',
-                      paddingLeft: '0px',
-                      paddingRight: '0px',
+          {/* ── Right side: one unified pill holding links (desktop), toggle, and hamburger (mobile) ── */}
+          <div className="flex items-center">
+            <motion.div
+              className="relative flex items-center rounded-full"
+              animate={pillActive
+                ? dark
+                  ? {
+                      backgroundColor: 'rgba(255,255,255,0.07)',
+                      borderColor: 'rgba(255,255,255,0.10)',
+                      boxShadow: '0 2px 20px rgba(0,0,0,0.45)',
+                      paddingLeft: '6px',
+                      paddingRight: '6px',
                     }
-                }
-                transition={pillTransition}
-                style={{
-                  borderWidth: '1px',
-                  borderStyle: 'solid',
-                  backdropFilter: 'blur(14px)',
-                  WebkitBackdropFilter: 'blur(14px)',
-                }}
-              >
+                  : {
+                      backgroundColor: 'rgba(255,255,255,0.90)',
+                      borderColor: 'rgba(148,163,184,0.5)',
+                      boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+                      paddingLeft: '6px',
+                      paddingRight: '6px',
+                    }
+                : {
+                    backgroundColor: 'rgba(255,255,255,0)',
+                    borderColor: 'rgba(255,255,255,0)',
+                    boxShadow: '0 0px 0px rgba(0,0,0,0)',
+                    paddingLeft: '0px',
+                    paddingRight: '0px',
+                  }
+              }
+              transition={pillTransition}
+              style={{
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                backdropFilter: 'blur(14px)',
+                WebkitBackdropFilter: 'blur(14px)',
+              }}
+            >
+              {/* ══ DESKTOP: inline nav links (hidden on mobile) ══ */}
+              <div className="hidden md:flex items-center">
                 {navLinks.map(({ label, href }) => {
                   const isActive = active === href
                   return (
@@ -171,55 +170,19 @@ export function Navbar() {
                     </button>
                   )
                 })}
-              </motion.div>
 
-              {/* Divider between links and toggle */}
-              <motion.span
-                aria-hidden="true"
-                animate={{ opacity: scrolled ? 1 : 0, scaleY: scrolled ? 1 : 0.5 }}
-                transition={fadeTransition}
-                className={cn(
-                  'h-4 w-px shrink-0 origin-center mx-2',
-                  dark ? 'bg-white/[0.15]' : 'bg-slate-200'
-                )}
-              />
-            </div>
+                {/* Divider between links and toggle */}
+                <motion.span
+                  aria-hidden="true"
+                  animate={{ opacity: scrolled ? 1 : 0, scaleY: scrolled ? 1 : 0.5 }}
+                  transition={fadeTransition}
+                  className={cn(
+                    'h-4 w-px shrink-0 origin-center mx-2',
+                    dark ? 'bg-white/[0.15]' : 'bg-slate-200'
+                  )}
+                />
+              </div>
 
-            {/* ══ SHARED: pill wrapper for toggle + mobile hamburger ══ */}
-            <motion.div
-              className="relative flex items-center rounded-full"
-              animate={pillActive
-                ? dark
-                  ? {
-                      backgroundColor: 'rgba(255,255,255,0.07)',
-                      borderColor: 'rgba(255,255,255,0.10)',
-                      boxShadow: '0 2px 20px rgba(0,0,0,0.45)',
-                      paddingLeft: '2px',
-                      paddingRight: '2px',
-                    }
-                  : {
-                      backgroundColor: 'rgba(255,255,255,0.90)',
-                      borderColor: 'rgba(148,163,184,0.5)',
-                      boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
-                      paddingLeft: '2px',
-                      paddingRight: '2px',
-                    }
-                : {
-                    backgroundColor: 'rgba(255,255,255,0)',
-                    borderColor: 'rgba(255,255,255,0)',
-                    boxShadow: '0 0px 0px rgba(0,0,0,0)',
-                    paddingLeft: '0px',
-                    paddingRight: '0px',
-                  }
-              }
-              transition={pillTransition}
-              style={{
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                backdropFilter: 'blur(14px)',
-                WebkitBackdropFilter: 'blur(14px)',
-              }}
-            >
               {/* Dark mode toggle */}
               <motion.button
                 onClick={toggle}
