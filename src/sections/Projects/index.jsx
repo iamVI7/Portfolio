@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, useMotionValue, useTransform, animate } from 'framer-motion'
 import { Container } from '../../ui/Container'
 import { projects } from '../../data/projects'
 import { useTheme } from '../../context/ThemeContext'
@@ -86,11 +86,89 @@ const STACK_OFFSETS = [
   { tx: 11, ty: 0, rotate: 0, scale: 1.00, z: 3 },
 ]
 
+// Shared markup for a single card face — used by both the draggable front
+// card and the static back cards, so image + pill are always one element
+// tree moved by one transform, never two things animating separately.
+// `dragging` swaps the pill's backdrop-blur for a plain solid fill while its
+// card is actively being dragged — backdrop-filter has to resample whatever
+// is now behind it on every single frame, which is expensive and gets worse
+// the further the card overlaps the peeking cards behind it (hence why a
+// rightward drag, which increases that overlap, felt choppier than left).
+function CardFace({ proj, dragging = false }) {
+  return (
+    <>
+      {/* Solid background to prevent bleed-through */}
+      <div className="absolute inset-0 bg-white dark:bg-slate-900" />
+      {/* Full-bleed image / gradient */}
+      <div className="absolute inset-0">
+        {proj.image ? (
+          <img
+            src={proj.image}
+            alt={proj.name}
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{ background: ACCENT_BG[proj.accent] ?? '#c7d2fe' }}
+          >
+            <span className="text-7xl select-none" aria-hidden="true">{proj.emoji}</span>
+          </div>
+        )}
+        {/* Scrim */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+      </div>
+
+      {/* Floating pill — pointer-events-none on the wrapper so it never
+          steals the drag gesture from the card; only the link opts back in. */}
+      <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
+        <div
+          className={cn(
+            'flex items-center justify-between gap-3 rounded-2xl px-4 py-3 shadow-lg shadow-black/10',
+            dragging
+              ? 'bg-white dark:bg-slate-900'
+              : 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-md'
+          )}
+        >
+          <div className="min-w-0">
+            <p className="font-serif text-[15px] font-normal leading-snug tracking-tight text-slate-900 dark:text-slate-100 truncate">
+              {proj.name}
+            </p>
+            <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400 truncate mt-0.5">
+              {proj.description}
+            </p>
+          </div>
+          <a
+            href={proj.href}
+            aria-label={`View ${proj.name}`}
+            onClick={e => e.stopPropagation()}
+            onPointerDown={e => e.stopPropagation()}
+            className="pointer-events-auto shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+          >
+            <span className="text-[11px]" aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// Front-card offset is always the same slot (last in STACK_OFFSETS).
+const FRONT_OFFSET = STACK_OFFSETS[STACK_OFFSETS.length - 1]
+
 function MobileStack({ projects: items, dark }) {
-  const [order, setOrder]       = useState(items.map((_, i) => i).reverse())
-  const [dragging, setDragging] = useState(false)
-  const [dragX, setDragX]       = useState(0)
-  const startXRef               = useRef(0)
+  const [order, setOrder]         = useState(items.map((_, i) => i).reverse())
+  const [isDragging, setDragging] = useState(false)
+
+  // Driven directly by Framer Motion's drag gesture — updates happen on the
+  // compositor thread, not via React state, so the whole card (image + pill
+  // together, since they're one element tree) moves as a single transform
+  // with no per-pixel re-render to fall behind on.
+  const dragX = useMotionValue(0)
+  const frontX = useTransform(dragX, (v) => FRONT_OFFSET.tx + v)
+  const frontRotate = useTransform(dragX, (v) => v / 18)
+  const frontOpacity = useTransform(dragX, (v) => Math.max(0.55, 1 - Math.abs(v) / 260))
 
   const frontIdx = order[order.length - 1]
 
@@ -101,7 +179,6 @@ function MobileStack({ projects: items, dark }) {
       next.unshift(next.pop())
       return next
     })
-    setDragX(0)
   }, [])
 
   // Inverse of cycleNext — pulls the previous card back on top of the pile.
@@ -111,30 +188,22 @@ function MobileStack({ projects: items, dark }) {
       next.push(next.shift())
       return next
     })
-    setDragX(0)
   }, [])
 
-  const onPointerDown = (e) => {
-    setDragging(true)
-    startXRef.current = e.clientX
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }
+  const handleDragStart = () => setDragging(true)
 
-  const onPointerMove = (e) => {
-    if (!dragging) return
-    // Stop the browser's own gesture handling (e.g. the edge "swipe to go
-    // back" navigation gesture some mobile browsers trigger on rightward
-    // swipes) from kicking in while we're driving the drag ourselves.
-    e.preventDefault()
-    setDragX(e.clientX - startXRef.current)
-  }
-
-  const onPointerUp = () => {
-    if (!dragging) return
+  const handleDragEnd = (_event, info) => {
     setDragging(false)
-    if (dragX <= -65) cycleNext()       // swipe left  → next card comes on top
-    else if (dragX >= 65) cyclePrev()   // swipe right → previous card comes on top
-    else setDragX(0)
+    const x = info.offset.x
+    if (x <= -65) {
+      cycleNext()          // swipe left  → next card comes on top
+      dragX.set(0)
+    } else if (x >= 65) {
+      cyclePrev()          // swipe right → previous card comes on top
+      dragX.set(0)
+    } else {
+      animate(dragX, 0, { type: 'spring', stiffness: 500, damping: 34 })
+    }
   }
 
   return (
@@ -146,87 +215,57 @@ function MobileStack({ projects: items, dark }) {
             const { tx, ty, rotate, scale, z } = STACK_OFFSETS[Math.min(stackPos, 2)]
             const proj = items[projectIdx]
 
-            const dragTx     = isFront && dragging ? dragX : 0
-            const dragRotate = isFront && dragging ? dragX / 18 : 0
-            const opacity    = isFront && dragging
-              ? Math.max(0.55, 1 - Math.abs(dragX) / 260)
-              : 1
+            const baseStyle = {
+              position:     'absolute',
+              top:          0,
+              left:         0,
+              width:        290,
+              height:       446,
+              borderRadius: 24,
+              zIndex:       z,
+              willChange:   'transform',
+              overflow:     'hidden',
+            }
 
-            const cardStyle = {
-              position:      'absolute',
-              top:           0,
-              left:          0,
-              width:         290,
-              height:        446,
-              borderRadius:  24,
-              transform:     `translate(${tx + dragTx}px, ${ty}px) rotate(${rotate + dragRotate}deg) scale(${scale})`,
-              zIndex:        z,
-              opacity,
-              transition:    isFront && dragging
-                ? 'none'
-                : 'transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease',
-              cursor:        isFront ? (dragging ? 'grabbing' : 'grab') : 'default',
-              pointerEvents: isFront ? 'auto' : 'none',
-              willChange:    'transform',
-              touchAction:   'none',
-              overflow:      'hidden',
-              boxShadow:     isFront ? '0 20px 60px rgba(0,0,0,0.18)' : '0 8px 24px rgba(0,0,0,0.10)',
+            if (isFront) {
+              return (
+                <motion.div
+                  key={proj.id}
+                  drag="x"
+                  dragMomentum={false}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  style={{
+                    ...baseStyle,
+                    x:        frontX,
+                    y:        ty,
+                    rotate:   frontRotate,
+                    scale,
+                    opacity:  frontOpacity,
+                    touchAction: 'none',
+                    boxShadow:   '0 20px 60px rgba(0,0,0,0.18)',
+                    cursor:      isDragging ? 'grabbing' : 'grab',
+                  }}
+                  className="select-none"
+                >
+                  <CardFace proj={proj} dragging={isDragging} />
+                </motion.div>
+              )
             }
 
             return (
               <div
                 key={proj.id}
-                style={cardStyle}
                 className="select-none"
-                onPointerDown={isFront ? onPointerDown : undefined}
-                onPointerMove={isFront ? onPointerMove : undefined}
-                onPointerUp={isFront ? onPointerUp : undefined}
-                onPointerCancel={isFront ? () => { setDragging(false); setDragX(0) } : undefined}
+                style={{
+                  ...baseStyle,
+                  transform:     `translate(${tx}px, ${ty}px) rotate(${rotate}deg) scale(${scale})`,
+                  transition:    'transform 0.5s cubic-bezier(0.22,1,0.36,1)',
+                  pointerEvents: 'none',
+                  boxShadow:     '0 8px 24px rgba(0,0,0,0.10)',
+                }}
               >
-                {/* Solid background to prevent bleed-through */}
-                <div className="absolute inset-0 bg-white dark:bg-slate-900" />
-                {/* Full-bleed image / gradient */}
-                <div className="absolute inset-0">
-                  {proj.image ? (
-                    <img
-                      src={proj.image}
-                      alt={proj.name}
-                      className="w-full h-full object-cover"
-                      draggable={false}
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{ background: ACCENT_BG[proj.accent] ?? '#c7d2fe' }}
-                    >
-                      <span className="text-7xl select-none" aria-hidden="true">{proj.emoji}</span>
-                    </div>
-                  )}
-                  {/* Scrim */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                </div>
-
-                {/* Floating pill */}
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-3 shadow-lg shadow-black/10">
-                    <div className="min-w-0">
-                      <p className="font-serif text-[15px] font-normal leading-snug tracking-tight text-slate-900 dark:text-slate-100 truncate">
-                        {proj.name}
-                      </p>
-                      <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                        {proj.description}
-                      </p>
-                    </div>
-                    <a
-                      href={proj.href}
-                      aria-label={`View ${proj.name}`}
-                      onClick={e => e.stopPropagation()}
-                      className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900"
-                    >
-                      <span className="text-[11px]" aria-hidden="true">↗</span>
-                    </a>
-                  </div>
-                </div>
+                <CardFace proj={proj} />
               </div>
             )
           })}
@@ -253,7 +292,7 @@ function MobileStack({ projects: items, dark }) {
 
                   return fSteps <= bSteps ? forward : backward
                 })
-                setDragX(0)
+                dragX.set(0)
               }}
               aria-label={`Go to project ${i + 1}`}
               className={cn(
