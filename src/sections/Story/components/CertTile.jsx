@@ -21,6 +21,8 @@ function CertIcon({ image, name, dark }) {
         <img
           src={image}
           alt={name}
+          loading="lazy"
+          decoding="async"
           className="h-full w-full object-cover"
           draggable={false}
         />
@@ -51,6 +53,17 @@ function ViewIcon() {
 }
 
 export function CertTile({ cert, index, dark, onClick }) {
+  // Warms the browser cache for the (already web-optimized, but still worth
+  // a head start on) full-size image the moment someone shows intent to open
+  // it — hovering on desktop, focusing via keyboard, or touching down on
+  // mobile — so by the time onClick actually fires the lightbox has little
+  // to no decoding left to do.
+  const preload = () => {
+    if (!cert.image) return
+    const img = new Image()
+    img.src = cert.image
+  }
+
   return (
     <motion.button
       custom={index}
@@ -59,6 +72,9 @@ export function CertTile({ cert, index, dark, onClick }) {
       whileInView="visible"
       viewport={{ once: true, margin: '-50px' }}
       onClick={() => onClick(cert)}
+      onMouseEnter={preload}
+      onFocus={preload}
+      onTouchStart={preload}
       className={cn(
         'group relative w-full text-left rounded-xl px-5 py-4 transition-all duration-300 focus:outline-none',
         'flex items-center gap-4',

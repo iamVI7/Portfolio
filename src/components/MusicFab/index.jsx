@@ -16,23 +16,41 @@ const COLLAPSE_DELAY = 380
 // is actually playing, in both the expanded play button and the collapsed
 // circle, so "currently playing" always reads the same way. Uses
 // `currentColor` so it inherits whichever text color its parent button has.
-function Wave() {
+//
+// The bars run on native CSS animation rather than framer-motion's
+// `animate` prop. This component gets unmounted/remounted constantly — the
+// pill collapsing on outside click, the play/pause icon swap inside
+// AnimatePresence — and a JS-driven animation would restart from frame 0
+// (or blank out entirely) every single time, which read as the waveform
+// "stopping". CSS animation-delay accepts negative values, which start the
+// animation mid-cycle instead of from 0%, so as long as we know how long
+// the wave has conceptually been running (`startedAt`, a timestamp that
+// lives on the parent and survives remounts) each bar can resume exactly
+// where it should be, frame-accurate, no matter how many times it's torn
+// down and rebuilt.
+function Wave({ startedAt }) {
+  const elapsed = startedAt != null ? (performance.now() - startedAt) / 1000 : 0
+
   return (
     <span className="flex h-4 items-end gap-[3px]" aria-hidden="true">
-      {[0, 1, 2].map((i) => (
-        <motion.span
-          key={i}
-          className="w-[3px] rounded-full bg-current"
-          style={{ height: '100%', transformOrigin: 'bottom' }}
-          animate={{ scaleY: [0.35, 1, 0.35] }}
-          transition={{
-            duration: 0.9 + i * 0.15,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: i * 0.12,
-          }}
-        />
-      ))}
+      {[0, 1, 2].map((i) => {
+        const duration = 0.9 + i * 0.15
+        const delayOffset = i * 0.12
+        // Phase within this bar's own cycle, folded back into [0, duration).
+        const phase = ((elapsed + delayOffset) % duration + duration) % duration
+        return (
+          <span
+            key={i}
+            className="wave-bar w-[3px] rounded-full bg-current"
+            style={{
+              height: '100%',
+              transformOrigin: 'bottom',
+              animationDuration: `${duration}s`,
+              animationDelay: `-${phase}s`,
+            }}
+          />
+        )
+      })}
     </span>
   )
 }
@@ -57,6 +75,10 @@ export function MusicFab() {
   const audioRef = useRef(null)
   const containerRef = useRef(null)
   const collapseTimer = useRef(null)
+  // Timestamp the wave "started" at, set once on the first successful play
+  // and never reset — it's the clock the Wave bars sync their phase to, so
+  // remounting them (pill collapse, icon swap) never looks like a restart.
+  const waveStartRef = useRef(null)
 
   // Hide alongside other big overlays (lightbox, contact modal) — same
   // pattern TicTacToeFab already uses.
@@ -111,7 +133,13 @@ export function MusicFab() {
       collapseTimer.current = setTimeout(() => setOpen(false), COLLAPSE_DELAY)
     } else {
       // Play: start and stay open, showing the wave.
-      audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false))
+      audio
+        .play()
+        .then(() => {
+          if (waveStartRef.current == null) waveStartRef.current = performance.now()
+          setPlaying(true)
+        })
+        .catch(() => setPlaying(false))
     }
   }
 
@@ -132,16 +160,21 @@ export function MusicFab() {
             : 'h-12 w-12 justify-center bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav sm:shadow-pill sm:bg-indigo-50/70 sm:dark:bg-indigo-500/10 sm:border-indigo-200 sm:dark:border-indigo-500/30'
         )}
       >
+        {/* mode="wait" is kept (children aren't absolutely stacked, so
+            letting them coexist would crowd each other) — instead the exit
+            is quick and the enter has no extra delay, so the handoff reads
+            as one continuous motion riding the container's `layout` spring,
+            not a fade-out-then-pop-in. */}
         <AnimatePresence mode="wait" initial={false}>
           {!open ? (
             <motion.button
               key="collapsed"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.28, ease: 'easeInOut' }}
+              animate={{ opacity: 1, transition: { duration: 0.26, ease: 'easeInOut' } }}
+              exit={{ opacity: 0, transition: { duration: 0.14, ease: 'easeInOut' } }}
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               onClick={handleExpand}
               aria-label="Show what's playing"
               className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
@@ -150,20 +183,24 @@ export function MusicFab() {
                 {playing ? (
                   <motion.span
                     key="wave-collapsed"
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.6 }}
+                    layout
+                    layoutId="music-collapsed-icon"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                     className="flex"
                   >
-                    <Wave />
+                    <Wave startedAt={waveStartRef.current} />
                   </motion.span>
                 ) : (
                   <motion.span
                     key="icon-collapsed"
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.6 }}
+                    layout
+                    layoutId="music-collapsed-icon"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                     className="flex"
                   >
@@ -176,9 +213,8 @@ export function MusicFab() {
             <motion.div
               key="expanded"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.28, delay: 0.1, ease: 'easeInOut' }}
+              animate={{ opacity: 1, transition: { duration: 0.26, ease: 'easeInOut' } }}
+              exit={{ opacity: 0, transition: { duration: 0.14, ease: 'easeInOut' } }}
               className="flex items-center gap-3"
             >
               <button
@@ -190,20 +226,24 @@ export function MusicFab() {
                   {playing ? (
                     <motion.span
                       key="wave"
-                      initial={{ opacity: 0, scale: 0.6 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.6 }}
+                      layout
+                      layoutId="music-expanded-icon"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       transition={{ duration: 0.2, ease: 'easeOut' }}
                       className="flex"
                     >
-                      <Wave />
+                      <Wave startedAt={waveStartRef.current} />
                     </motion.span>
                   ) : (
                     <motion.span
                       key="play"
-                      initial={{ opacity: 0, scale: 0.6 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.6 }}
+                      layout
+                      layoutId="music-expanded-icon"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       transition={{ duration: 0.2, ease: 'easeOut' }}
                       className="flex pl-0.5"
                     >

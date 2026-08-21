@@ -92,7 +92,7 @@ export function About() {
           {/* Bio card — tighter, no dead space */}
           <div className="rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.025] p-7 sm:p-8 lg:max-w-lg w-full shrink-0 flex flex-col justify-between">
             <div>
-              <p className="text-[15.5px] leading-[1.9] text-slate-600 dark:text-slate-300">
+              <p className="text-justify text-[15.5px] leading-[1.9] text-slate-600 dark:text-slate-300">
                 B.Tech CSE graduate with a quiet interest in{' '}
                 <span className="font-semibold text-slate-900 dark:text-slate-100">defence and technology</span>.
                 I like building things that are useful — software that reduces friction and actually works for people.
@@ -100,7 +100,7 @@ export function About() {
                 <em className="not-italic font-medium text-slate-700 dark:text-slate-300">responsibility</em>{' '}
                 matter more to me than shortcuts.
               </p>
-              <p className="mt-4 text-[15px] leading-[1.9] text-slate-500 dark:text-slate-400">
+              <p className="text-justify mt-4 text-[15px] leading-[1.9] text-slate-500 dark:text-slate-400">
                 Long term, I want to contribute to the{' '}
                 <span className="font-semibold text-slate-800 dark:text-slate-200">defence sector</span>{' '}
                 — through code and systems, not just intent. That's the direction I'm working toward.

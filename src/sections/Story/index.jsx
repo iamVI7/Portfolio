@@ -45,7 +45,7 @@ export function Story() {
           </h2>
 
           <p className={cn(
-            'mt-2.5 text-[13px] leading-relaxed',
+            'text-justify mt-2.5 text-[13px] leading-relaxed',
             dark ? 'text-slate-500' : 'text-slate-400'
           )}>
             Milestones, certificates, and the path that shaped the work.

@@ -40,6 +40,21 @@
     @apply bg-indigo-800 text-indigo-100;
   }
 
+  /* MusicFab equalizer bars — native CSS animation so a bar's phase can be
+     resumed with a negative animation-delay. This keeps the wave looking
+     continuous even though the React nodes rendering it get unmounted and
+     remounted (collapsed <-> expanded pill, play <-> pause icon swap). */
+  @keyframes wave-bar {
+    0%, 100% { transform: scaleY(0.35); }
+    50% { transform: scaleY(1); }
+  }
+
+  .wave-bar {
+    animation-name: wave-bar;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-indigo-500 rounded-sm;
   }

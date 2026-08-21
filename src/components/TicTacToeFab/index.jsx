@@ -288,11 +288,20 @@ export function TicTacToeFab() {
               exit={{ scale: 0, opacity: 0 }}
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              transition={{
+                scale: { type: 'spring', stiffness: 300, damping: 20 },
+                opacity: { duration: 0.2 },
+                // Resizing between the full pill and the compact circle (when
+                // the music widget opens) is a layout change, not a mount —
+                // give it MusicFab's own gentler spring so both widgets
+                // collapse/expand at the same weight and speed instead of
+                // this one snapping faster than the other.
+                layout: { type: 'spring', stiffness: 230, damping: 30, mass: 0.9 },
+              }}
               onClick={handleOpen}
               aria-label="Play tic-tac-toe against Vishal"
               className={cn(
-                'order-2 relative flex h-12 shrink-0 items-center justify-center gap-2 rounded-full transition-colors',
+                'order-3 sm:order-2 relative flex h-12 shrink-0 items-center justify-center gap-2 rounded-full transition-colors',
                 compact ? 'w-12 px-0' : 'px-6 sm:w-12 sm:h-12 sm:px-0',
                 'bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav sm:shadow-pill sm:bg-indigo-50/70 sm:dark:bg-indigo-500/10 sm:border-indigo-200 sm:dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300'
               )}
@@ -308,7 +317,7 @@ export function TicTacToeFab() {
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    transition={{ duration: 0.32, ease: 'easeInOut' }}
                     className="relative overflow-hidden whitespace-nowrap text-xs font-semibold tracking-tight leading-none sm:hidden"
                   >
                     Play me. I dare you.
@@ -319,53 +328,62 @@ export function TicTacToeFab() {
           )}
         </AnimatePresence>
 
-        {/* Music widget — kept rightmost via `order` since it needs to stay
-            at the dock's outer edge in both normal (mobile) and
-            flex-row-reverse (desktop) layouts. */}
-        <div className="order-3 sm:order-1">
+        {/* Music widget — sits between the dark mode toggle and the play
+            pill on mobile (order-2, between the toggle's order-1 and the
+            pill's order-3). On desktop the dark toggle is hidden and the
+            row is reversed, so it goes back to sm:order-1 to stay at the
+            dock's outer edge. */}
+        <div className="order-2 sm:order-1">
           <MusicFab />
         </div>
 
-        {/* Tooltip, desktop only — mobile pill already shows the label inline */}
-        {!open && !hasOpened && !compact && (
-          <motion.span
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6 }}
-            className="pointer-events-none hidden sm:flex h-10 shrink-0 items-center whitespace-nowrap rounded-full bg-white dark:bg-white/10 text-indigo-950 dark:text-slate-100 shadow-pill border border-indigo-100 dark:border-white/10 px-4"
-          >
-            <AnimatePresence mode="wait">
-              {tooltipPhase === 'thinking' ? (
-                <motion.span
-                  key="thinking"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center gap-1"
-                >
-                  {[0, 1, 2].map((i) => (
-                    <motion.span
-                      key={i}
-                      className="h-1.5 w-1.5 rounded-full bg-indigo-400"
-                      animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
-                      transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15 }}
-                    />
-                  ))}
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="text"
-                  initial={{ opacity: 0, y: 2 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="text-[13px] font-semibold tracking-tight leading-none"
-                >
-                  Play me. I dare you.
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.span>
-        )}
+        {/* Tooltip, desktop only — mobile pill already shows the label inline.
+            sm:order-3 (higher than the play pill's sm:order-2) pushes it past
+            the pill along the reversed row, which puts it on the pill's left
+            — reading as a label next to the button it's pointing at, rather
+            than stranded out past the music widget. */}
+        <AnimatePresence>
+          {!open && !hasOpened && !compact && (
+            <motion.span
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 8, transition: { duration: 0.18, ease: 'easeInOut' } }}
+              transition={{ delay: 0.6 }}
+              className="sm:order-3 pointer-events-none hidden sm:flex h-10 shrink-0 items-center whitespace-nowrap rounded-full bg-white dark:bg-white/10 text-indigo-950 dark:text-slate-100 shadow-pill border border-indigo-100 dark:border-white/10 px-4"
+            >
+              <AnimatePresence mode="wait">
+                {tooltipPhase === 'thinking' ? (
+                  <motion.span
+                    key="thinking"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-1"
+                  >
+                    {[0, 1, 2].map((i) => (
+                      <motion.span
+                        key={i}
+                        className="h-1.5 w-1.5 rounded-full bg-indigo-400"
+                        animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
+                        transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15 }}
+                      />
+                    ))}
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="text"
+                    initial={{ opacity: 0, y: 2 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="text-[13px] font-semibold tracking-tight leading-none"
+                  >
+                    Play me. I dare you.
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Backdrop — mobile only, gives the panel a proper bottom-sheet feel */}

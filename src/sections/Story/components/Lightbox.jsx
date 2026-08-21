@@ -1,10 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { announceModalOpen } from '../../../utils/modalBus'
 
 const ease = [0.16, 1, 0.3, 1]
 
 export function Lightbox({ cert, onClose }) {
+  // Tracks whether the *current* cert's image has finished decoding, so we
+  // can crossfade it in instead of letting it pop in abruptly once it's
+  // ready — that abrupt pop is what read as a "heavy" render.
+  const [loaded, setLoaded] = useState(false)
+
   useEffect(() => {
     announceModalOpen(!!cert)
     return () => announceModalOpen(false)
@@ -15,6 +20,14 @@ export function Lightbox({ cert, onClose }) {
     else document.body.style.overflow = ''
     return () => { document.body.style.overflow = '' }
   }, [cert])
+
+  // Reset the fade-in whenever a different cert is opened, and cover the
+  // case where the browser already has the image cached (from the
+  // thumbnail, or the hover-preload in CertTile) — onLoad won't fire again
+  // for an already-complete image, so check `.complete` directly too.
+  useEffect(() => {
+    setLoaded(false)
+  }, [cert?.image])
 
   return (
     <AnimatePresence>
@@ -38,14 +51,38 @@ export function Lightbox({ cert, onClose }) {
             className="relative w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
-            {/* Image — taller aspect ratio */}
+            {/* Image — reserves its real aspect ratio up front (from
+                cert.width/height) so nothing crops or jumps once it loads;
+                falls back to 4:3 only if a cert has no known dimensions. */}
             {cert.image ? (
-              <img
-                src={cert.image}
-                alt={cert.name}
-                className="w-full object-cover"
-                draggable={false}
-              />
+              <div
+                className="relative w-full bg-slate-100 dark:bg-slate-800"
+                style={{ aspectRatio: cert.width && cert.height ? `${cert.width} / ${cert.height}` : '4 / 3' }}
+              >
+                {/* Skeleton pulse behind the image so there's never a blank
+                    panel while a slower connection is still fetching it. */}
+                <div
+                  className={`absolute inset-0 bg-slate-200 dark:bg-slate-700 transition-opacity duration-300 ${
+                    loaded ? 'opacity-0' : 'opacity-100 animate-pulse'
+                  }`}
+                  aria-hidden="true"
+                />
+                <img
+                  src={cert.image}
+                  alt={cert.name}
+                  width={cert.width}
+                  height={cert.height}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  onLoad={(e) => { if (e.currentTarget.complete) setLoaded(true) }}
+                  ref={(node) => { if (node?.complete) setLoaded(true) }}
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ease-out ${
+                    loaded ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  draggable={false}
+                />
+              </div>
             ) : (
               <div className="w-full aspect-[4/3] bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                 <span className="text-[11px] font-mono uppercase tracking-widest text-slate-300 dark:text-slate-600">

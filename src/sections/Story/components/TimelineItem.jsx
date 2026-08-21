@@ -97,7 +97,7 @@ export function TimelineItem({ item, index, isLast }) {
             </h3>
 
             {/* Description */}
-            <p className="mt-1.5 text-[12px] sm:text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">
+            <p className="text-justify mt-1.5 text-[12px] sm:text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">
               {item.description}
             </p>
 

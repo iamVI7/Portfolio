@@ -59,6 +59,11 @@ export const certificates = [
     description:
       'Industry-level training in software engineering, problem-solving, and professional practices at Infosys.',
     image: 'Centum_Infosys.jpg',
+    // Real pixel dimensions of the (now web-optimized) file — lets the
+    // lightbox reserve the correct aspect ratio before the image has even
+    // started loading, so the panel doesn't jump or crop once it arrives.
+    width: 1400,
+    height: 990,
   },
   {
     name: 'Expert Labs National Hackathon 2025',
@@ -67,6 +72,8 @@ export const certificates = [
     description:
       'Built an AI-powered solution at a national hackathon, S-Vyasa University, Bengaluru.',
     image: 'Vishal Yadav_Team46(IBM Hacakthon).jpg',
+    width: 1400,
+    height: 788,
   },
   {
     name: 'Full Stack Web Development',
@@ -75,5 +82,7 @@ export const certificates = [
     description:
       'Structured program covering React, Node.js, MongoDB, and the MERN stack end-to-end.',
     image: 'MERN_Stack.jpg',
+    width: 1400,
+    height: 994,
   },
 ]
