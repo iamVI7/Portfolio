@@ -5,6 +5,7 @@ import { cn } from '../../utils/cn'
 import { useTheme } from '../../context/ThemeContext'
 import { useActiveSection } from '../../hooks/useActiveSection'
 import { useScrollY } from '../../hooks/useScrollY'
+import { useHideOnScroll } from '../../hooks/useHideOnScroll'
 
 function scrollToSection(id) {
   const el = document.getElementById(id)
@@ -66,6 +67,13 @@ export function Navbar() {
   const scrolled = scrollY > 40
   const pillActive = scrolled || open
 
+  // Slide the whole bar off-screen while actively scrolling down, and bring
+  // it back on scroll-up — frees up the viewport on long pages, Google
+  // Photos-style. Force it visible while the mobile drawer is open so it
+  // doesn't vanish mid-interaction.
+  const hiddenByScroll = useHideOnScroll()
+  const hidden = hiddenByScroll && !open
+
   const handleNav = useCallback((href) => {
     scrollToSection(href)
     setOpen(false)
@@ -73,7 +81,11 @@ export function Navbar() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 pointer-events-none">
+      <motion.header
+        animate={{ y: hidden ? '-130%' : '0%' }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed inset-x-0 top-0 z-50 pointer-events-none"
+      >
         <nav
           className="mx-auto max-w-[900px] px-4 pt-4 sm:px-8 sm:pt-5 flex items-center justify-between pointer-events-auto"
           aria-label="Main navigation"
@@ -365,7 +377,7 @@ export function Navbar() {
             </motion.div>
           </div>
         </nav>
-      </header>
+      </motion.header>
     </>
   )
 }

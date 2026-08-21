@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Gamepad2, X, RotateCcw, Sun, Moon } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { subscribeModalVisibility } from '../../utils/modalBus'
+import { subscribeMusicVisibility } from '../../utils/musicBus'
+import { announceGameOpen } from '../../utils/gameBus'
 import { useTheme } from '../../context/ThemeContext'
+import { MusicFab } from '../MusicFab'
 
 /**
  * TicTacToeFab
@@ -92,12 +95,23 @@ export function TicTacToeFab() {
   const [record, setRecord] = useState({ wins: 0, losses: 0, draws: 0 })
   const [hasOpened, setHasOpened] = useState(false)
   const [suppressed, setSuppressed] = useState(false) // true while another modal/popup is open
+  const [compact, setCompact] = useState(false) // true while the music widget is expanded
   const panelRef = useRef(null)
 
   // Hide entirely whenever something else (certificate lightbox, contact
   // success modal, etc.) has the user's attention — two overlapping popups
   // reads as cluttered rather than playful.
   useEffect(() => subscribeModalVisibility(setSuppressed), [])
+
+  // Shrink down to a plain circle whenever the music widget expands, so the
+  // two don't compete for space in the bottom dock.
+  useEffect(() => subscribeMusicVisibility(setCompact), [])
+
+  // Let the music widget know when the game panel is open, so it collapses
+  // back to a circle instead of the two competing for attention.
+  useEffect(() => {
+    announceGameOpen(open)
+  }, [open])
 
   useEffect(() => {
     if (suppressed) setOpen(false)
@@ -234,7 +248,7 @@ export function TicTacToeFab() {
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               onClick={toggle}
               aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="sm:hidden flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav text-slate-500 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-yellow-300 transition-colors"
+              className="order-1 sm:hidden flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav text-slate-500 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-yellow-300 transition-colors"
             >
               <AnimatePresence mode="wait" initial={false}>
                 {dark ? (
@@ -268,6 +282,7 @@ export function TicTacToeFab() {
         <AnimatePresence>
           {!open && (
             <motion.button
+              layout
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
@@ -276,21 +291,43 @@ export function TicTacToeFab() {
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               onClick={handleOpen}
               aria-label="Play tic-tac-toe against Vishal"
-              className="relative flex h-12 shrink-0 items-center justify-center gap-2 rounded-full px-6 sm:w-12 sm:h-12 sm:px-0 bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav sm:shadow-pill sm:bg-indigo-50/70 sm:dark:bg-indigo-500/10 sm:border-indigo-200 sm:dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+              className={cn(
+                'order-2 relative flex h-12 shrink-0 items-center justify-center gap-2 rounded-full transition-colors',
+                compact ? 'w-12 px-0' : 'px-6 sm:w-12 sm:h-12 sm:px-0',
+                'bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav sm:shadow-pill sm:bg-indigo-50/70 sm:dark:bg-indigo-500/10 sm:border-indigo-200 sm:dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300'
+              )}
             >
-              {!hasOpened && (
+              {!hasOpened && !compact && (
                 <span className="absolute inset-0 rounded-full border border-indigo-400/50 animate-pulse-slow" />
               )}
               <Gamepad2 className="relative h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
-              <span className="relative text-xs font-semibold tracking-tight leading-none sm:hidden">
-                Play me. I dare you.
-              </span>
+              <AnimatePresence initial={false}>
+                {!compact && (
+                  <motion.span
+                    key="label"
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="relative overflow-hidden whitespace-nowrap text-xs font-semibold tracking-tight leading-none sm:hidden"
+                  >
+                    Play me. I dare you.
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </motion.button>
           )}
         </AnimatePresence>
 
+        {/* Music widget — kept rightmost via `order` since it needs to stay
+            at the dock's outer edge in both normal (mobile) and
+            flex-row-reverse (desktop) layouts. */}
+        <div className="order-3 sm:order-1">
+          <MusicFab />
+        </div>
+
         {/* Tooltip, desktop only — mobile pill already shows the label inline */}
-        {!open && !hasOpened && (
+        {!open && !hasOpened && !compact && (
           <motion.span
             initial={{ opacity: 0, x: 8 }}
             animate={{ opacity: 1, x: 0 }}
