@@ -43,7 +43,7 @@ export function Footer() {
   return (
     <footer role="contentinfo" className="border-t border-slate-100 dark:border-white/[0.07]">
       <Container size="lg">
-        <div className="flex flex-col items-center gap-6 py-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-center gap-6 pt-8 pb-28 sm:py-8 sm:flex-row sm:items-center sm:justify-between">
 
           {/* Centre — nav links */}
           <nav aria-label="Footer navigation">

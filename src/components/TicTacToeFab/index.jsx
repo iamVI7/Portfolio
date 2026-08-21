@@ -318,7 +318,7 @@ export function TicTacToeFab() {
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
                     transition={{ duration: 0.32, ease: 'easeInOut' }}
-                    className="relative overflow-hidden whitespace-nowrap text-xs font-semibold tracking-tight leading-none sm:hidden"
+                    className="relative overflow-hidden whitespace-nowrap text-[15px] font-bold tracking-tight leading-none sm:hidden"
                   >
                     Play me. I dare you.
                   </motion.span>
@@ -375,7 +375,7 @@ export function TicTacToeFab() {
                     initial={{ opacity: 0, y: 2 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="text-[13px] font-semibold tracking-tight leading-none"
+                    className="text-[15px] font-bold tracking-tight leading-none"
                   >
                     Play me. I dare you.
                   </motion.span>

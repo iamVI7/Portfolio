@@ -254,7 +254,7 @@ export function MusicFab() {
               </button>
 
               <div className="flex flex-col leading-tight pr-2">
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 whitespace-nowrap">
                   Currently vibing to
                 </span>
                 {NOW_PLAYING.url ? (
@@ -263,12 +263,12 @@ export function MusicFab() {
                     target="_blank"
                     rel="noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 whitespace-nowrap"
+                    className="text-[15px] font-bold tracking-tight text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 whitespace-nowrap"
                   >
                     {NOW_PLAYING.artist} – {NOW_PLAYING.title}
                   </a>
                 ) : (
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                  <span className="text-[15px] font-bold tracking-tight text-slate-800 dark:text-slate-100 whitespace-nowrap">
                     {NOW_PLAYING.artist} – {NOW_PLAYING.title}
                   </span>
                 )}

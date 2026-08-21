@@ -6,6 +6,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { useActiveSection } from '../../hooks/useActiveSection'
 import { useScrollY } from '../../hooks/useScrollY'
 import { useHideOnScroll } from '../../hooks/useHideOnScroll'
+import { useIsDesktop } from '../../hooks/useIsDesktop'
 
 function scrollToSection(id) {
   const el = document.getElementById(id)
@@ -64,15 +65,21 @@ export function Navbar() {
   const [open, setOpen] = useState(false)
   const { dark, toggle } = useTheme()
 
-  const scrolled = scrollY > 40
+  const isDesktop = useIsDesktop()
+
+  // On desktop the navbar floats permanently — its pill background and
+  // wordmark chip show from the start, not just once the page is scrolled.
+  // On mobile it keeps the original scroll-triggered behavior.
+  const scrolled = scrollY > 40 || isDesktop
   const pillActive = scrolled || open
 
   // Slide the whole bar off-screen while actively scrolling down, and bring
   // it back on scroll-up — frees up the viewport on long pages, Google
-  // Photos-style. Force it visible while the mobile drawer is open so it
-  // doesn't vanish mid-interaction.
+  // Photos-style. Mobile-only: since the navbar now floats permanently on
+  // desktop, it should never hide there. Force it visible while the mobile
+  // drawer is open so it doesn't vanish mid-interaction.
   const hiddenByScroll = useHideOnScroll()
-  const hidden = hiddenByScroll && !open
+  const hidden = hiddenByScroll && !open && !isDesktop
 
   const handleNav = useCallback((href) => {
     scrollToSection(href)
@@ -195,13 +202,15 @@ export function Navbar() {
                 />
               </div>
 
-              {/* Dark mode toggle */}
+              {/* Dark mode toggle — hidden on mobile since the bottom pill
+                  dock already has its own dark mode toggle there; kept on
+                  desktop, where that dock has none. */}
               <motion.button
                 onClick={toggle}
                 whileTap={{ scale: 0.88 }}
                 aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
                 className={cn(
-                  'relative flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
+                  'relative hidden md:flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
                   dark ? 'text-slate-300 hover:text-yellow-300' : 'text-slate-500 hover:text-indigo-600',
                 )}
               >
@@ -231,17 +240,6 @@ export function Navbar() {
                   )}
                 </AnimatePresence>
               </motion.button>
-
-              {/* Divider — only shown on mobile */}
-              <motion.span
-                aria-hidden="true"
-                animate={{ opacity: pillActive ? 1 : 0, scaleY: pillActive ? 1 : 0.5 }}
-                transition={fadeTransition}
-                className={cn(
-                  'h-4 w-px shrink-0 origin-center md:hidden',
-                  dark ? 'bg-white/[0.15]' : 'bg-slate-200'
-                )}
-              />
 
               {/* ══ Hamburger — mobile only ══ */}
               <div className="relative md:hidden">
