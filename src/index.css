@@ -12,6 +12,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    overscroll-behavior-x: none;
   }
 
   body {
@@ -19,6 +20,7 @@
     background-color: #f9f9f8;
     color: #0f0f14;
     overflow-x: hidden;
+    overscroll-behavior-x: none;
   }
 
   @media (pointer: fine) {

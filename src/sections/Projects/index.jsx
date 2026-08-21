@@ -81,9 +81,9 @@ function ProjectCard({ project, index }) {
 
 // ─── Stack offsets: back cards peek from the right ────────────────────────────
 const STACK_OFFSETS = [
-  { tx: 42, ty: 0, rotate: 0, scale: 0.93, z: 1 },
-  { tx: 26, ty: 0, rotate: 0, scale: 0.96, z: 2 },
-  { tx: 10, ty: 0, rotate: 0, scale: 1.00, z: 3 },
+  { tx: 47, ty: 0, rotate: 0, scale: 0.93, z: 1 },
+  { tx: 29, ty: 0, rotate: 0, scale: 0.96, z: 2 },
+  { tx: 11, ty: 0, rotate: 0, scale: 1.00, z: 3 },
 ]
 
 function MobileStack({ projects: items, dark }) {
@@ -94,10 +94,21 @@ function MobileStack({ projects: items, dark }) {
 
   const frontIdx = order[order.length - 1]
 
+  // Front card is sent to the back of the pile — next card comes on top.
   const cycleNext = useCallback(() => {
     setOrder(prev => {
       const next = [...prev]
       next.unshift(next.pop())
+      return next
+    })
+    setDragX(0)
+  }, [])
+
+  // Inverse of cycleNext — pulls the previous card back on top of the pile.
+  const cyclePrev = useCallback(() => {
+    setOrder(prev => {
+      const next = [...prev]
+      next.push(next.shift())
       return next
     })
     setDragX(0)
@@ -111,37 +122,42 @@ function MobileStack({ projects: items, dark }) {
 
   const onPointerMove = (e) => {
     if (!dragging) return
+    // Stop the browser's own gesture handling (e.g. the edge "swipe to go
+    // back" navigation gesture some mobile browsers trigger on rightward
+    // swipes) from kicking in while we're driving the drag ourselves.
+    e.preventDefault()
     setDragX(e.clientX - startXRef.current)
   }
 
   const onPointerUp = () => {
     if (!dragging) return
     setDragging(false)
-    if (Math.abs(dragX) > 65) cycleNext()
+    if (dragX <= -65) cycleNext()       // swipe left  → next card comes on top
+    else if (dragX >= 65) cyclePrev()   // swipe right → previous card comes on top
     else setDragX(0)
   }
 
   return (
     <div className="sm:hidden flex flex-col items-center w-full">
-      <div style={{ width: 330, height: 420, position: 'relative', margin: '0 auto' }}>
-        <div className="relative h-full" style={{ overflow: 'visible', width: 292, margin: '0 auto' }}>
+      <div style={{ width: 368, height: 466, position: 'relative', margin: '0 auto' }}>
+        <div className="relative h-full" style={{ overflow: 'visible', width: 326, margin: '0 auto' }}>
           {order.map((projectIdx, stackPos) => {
             const isFront = stackPos === order.length - 1
             const { tx, ty, rotate, scale, z } = STACK_OFFSETS[Math.min(stackPos, 2)]
             const proj = items[projectIdx]
 
             const dragTx     = isFront && dragging ? dragX : 0
-            const dragRotate = 0
+            const dragRotate = isFront && dragging ? dragX / 18 : 0
             const opacity    = isFront && dragging
-              ? Math.max(0.4, 1 - Math.abs(dragX) / 200)
+              ? Math.max(0.55, 1 - Math.abs(dragX) / 260)
               : 1
 
             const cardStyle = {
               position:      'absolute',
               top:           0,
               left:          0,
-              width:         260,
-              height:        400,
+              width:         290,
+              height:        446,
               borderRadius:  24,
               transform:     `translate(${tx + dragTx}px, ${ty}px) rotate(${rotate + dragRotate}deg) scale(${scale})`,
               zIndex:        z,
@@ -226,9 +242,16 @@ function MobileStack({ projects: items, dark }) {
               key={i}
               onClick={() => {
                 setOrder(prev => {
-                  let o = [...prev]
-                  while (o[o.length - 1] !== i) o.unshift(o.pop())
-                  return o
+                  // Rotate whichever way reaches target `i` in fewer steps.
+                  const forward = [...prev]
+                  let fSteps = 0
+                  while (forward[forward.length - 1] !== i) { forward.unshift(forward.pop()); fSteps++ }
+
+                  const backward = [...prev]
+                  let bSteps = 0
+                  while (backward[backward.length - 1] !== i) { backward.push(backward.shift()); bSteps++ }
+
+                  return fSteps <= bSteps ? forward : backward
                 })
                 setDragX(0)
               }}
