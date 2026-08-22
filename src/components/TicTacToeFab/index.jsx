@@ -315,7 +315,10 @@ export function TicTacToeFab() {
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.95 }}
               transition={{
-                scale: { type: 'spring', stiffness: 300, damping: 20 },
+                // Same spring MusicFab uses for its collapsed circle's
+                // mount/unmount, so both widgets pop open and closed with
+                // identical weight instead of the two feeling subtly off.
+                scale: { type: 'spring', stiffness: 400, damping: 25 },
                 opacity: { duration: 0.2 },
                 // Resizing between the full pill and the compact circle (when
                 // the music widget opens) is a layout change, not a mount —
@@ -403,7 +406,7 @@ export function TicTacToeFab() {
                     initial={{ opacity: 0, y: 2 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="text-[15px] font-bold tracking-tight leading-none"
+                    className="text-[13px] font-semibold tracking-tight leading-none"
                   >
                     Play me. I dare you.
                   </motion.span>
@@ -415,7 +418,7 @@ export function TicTacToeFab() {
         </LayoutGroup>
       </div>
 
-      {/* Backdrop — mobile only, gives the panel a proper bottom-sheet feel */}
+      {/* Backdrop — mobile only, dims the page behind the floating panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -430,29 +433,38 @@ export function TicTacToeFab() {
         )}
       </AnimatePresence>
 
-      {/* Game panel — floating card on desktop, bottom sheet on mobile */}
+      {/* Game panel — floating card on both mobile and desktop. Opens/closes
+          by scaling up from the trigger's corner rather than sliding in,
+          using the same responsive spring MusicFab uses for its own
+          collapsed-circle-to-pill expansion, so the two widgets read as
+          one consistent motion language instead of two different ones. */}
       <AnimatePresence>
         {open && (
           <motion.div
             ref={panelRef}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 24 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={pillLayoutSpring}
             role="dialog"
             aria-label="Tic-tac-toe against Vishal"
             className={cn(
               'fixed z-[70]',
-              'inset-x-0 bottom-0 sm:inset-x-auto sm:bottom-8 sm:right-8',
-              'w-full sm:w-[340px]',
-              'rounded-t-[28px] rounded-b-none sm:rounded-[28px]',
-              'border border-b-0 sm:border-b bg-white dark:bg-[#0f0f1a] border-indigo-100/70 dark:border-white/10',
-              'shadow-card dark:shadow-card-dark p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:p-6'
+              // Floats clear of the edges on mobile now (matches the
+              // trigger dock's own bottom-5) instead of docking flush to
+              // the bottom as a full-width sheet.
+              'left-4 right-4 bottom-5 sm:left-auto sm:right-8 sm:bottom-8',
+              'w-auto sm:w-[340px]',
+              'rounded-[28px]',
+              // Grows from bottom-center on mobile (trigger row is
+              // horizontally centered there) and bottom-right on desktop
+              // (trigger sits at the right edge) — origin matches wherever
+              // the button actually is at each breakpoint.
+              'origin-bottom sm:origin-bottom-right',
+              'border bg-white dark:bg-[#0f0f1a] border-indigo-100/70 dark:border-white/10',
+              'shadow-card dark:shadow-card-dark p-5 sm:p-6'
             )}
           >
-            {/* Drag handle — mobile bottom-sheet affordance, hidden on desktop */}
-            <div className="sm:hidden mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-200 dark:bg-white/15" />
-
             <div className="flex items-center justify-between mb-1">
               <div>
                 <p className="text-[11px] uppercase tracking-widest text-indigo-500 font-semibold">

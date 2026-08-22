@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { announceModalOpen } from '../../../utils/modalBus'
-
-const ease = [0.16, 1, 0.3, 1]
+import { useResponsiveSpring } from '../../../utils/motionSprings'
 
 export function Lightbox({ cert, onClose }) {
   // Tracks whether the *current* cert's image has finished decoding, so we
   // can crossfade it in instead of letting it pop in abruptly once it's
   // ready — that abrupt pop is what read as a "heavy" render.
   const [loaded, setLoaded] = useState(false)
+  // Same responsive tween used across the site's other popups (contact
+  // modal, game panel, music widget), so this one opens/closes with the
+  // same weight instead of its own slightly different timing.
+  const panelSpring = useResponsiveSpring()
 
   useEffect(() => {
     announceModalOpen(!!cert)
@@ -37,17 +40,17 @@ export function Lightbox({ cert, onClose }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
           style={{ background: 'rgba(10,10,20,0.82)', backdropFilter: 'blur(10px)' }}
           onClick={onClose}
         >
           <motion.div
             key="panel"
-            initial={{ opacity: 0, scale: 0.96, y: 16 }}
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 16 }}
-            transition={{ duration: 0.3, ease }}
+            transition={panelSpring}
             className="relative w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl"
             onClick={e => e.stopPropagation()}
           >

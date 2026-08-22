@@ -5,6 +5,7 @@ import { Container } from '../../ui/Container'
 import { cn } from '../../utils/cn'
 import { useTheme } from '../../context/ThemeContext'
 import { announceModalOpen } from '../../utils/modalBus'
+import { useResponsiveSpring } from '../../utils/motionSprings'
 
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
@@ -65,6 +66,10 @@ function ContactModal({ open, onClose, dark }) {
   const [formError, setFormError] = useState(false)
   const [sendError, setSendError] = useState(false)
   const [focused, setFocused] = useState(null)
+  // Same responsive tween MusicFab/TicTacToeFab use for their own
+  // open/close motion, so every popup on the site shares one consistent
+  // feel instead of each having its own slightly different timing.
+  const modalSpring = useResponsiveSpring()
 
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden'
@@ -142,7 +147,7 @@ function ContactModal({ open, onClose, dark }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
             className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
             onClick={handleClose}
             aria-hidden="true"
@@ -157,10 +162,10 @@ function ContactModal({ open, onClose, dark }) {
           >
             <motion.div
               key="modal"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={modalSpring}
               onClick={(e) => e.stopPropagation()}
               className={cn(
                 'relative w-full max-w-[480px] rounded-2xl shadow-2xl',
@@ -173,10 +178,10 @@ function ContactModal({ open, onClose, dark }) {
                 {sent ? (
                   <motion.div
                     key="success"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.25 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
                     className="flex flex-col items-center justify-center py-16 px-8 text-center"
                     role="status"
                     aria-live="polite"
@@ -201,7 +206,14 @@ function ContactModal({ open, onClose, dark }) {
                     </button>
                   </motion.div>
                 ) : (
-                  <motion.div key="form" exit={{ opacity: 0 }} className="p-7 sm:p-8">
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="p-7 sm:p-8"
+                  >
                     <div className="flex items-start justify-between mb-2">
                       <h2
                         id="modal-heading"
