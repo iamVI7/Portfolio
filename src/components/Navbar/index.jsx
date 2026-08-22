@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { navLinks } from '../../data/nav'
 import { cn } from '../../utils/cn'
@@ -37,22 +37,27 @@ function MoonIcon() {
   )
 }
 
-const drawerVariants = {
-  hidden: { opacity: 0, y: -10, scale: 0.97 },
+// Menu panel: simple fade + scale from the top-right corner, no `layout`/
+// FLIP resizing. It only exists in the DOM while open (AnimatePresence
+// mount/unmount) and is fully opaque from its very first frame — nothing
+// is ever mid-resize with a half-applied style, so there's nothing for
+// the page behind it to show through.
+const menuVariants = {
+  hidden: { opacity: 0, scale: 0.92 },
   visible: {
-    opacity: 1, y: 0, scale: 1,
-    transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1], staggerChildren: 0.04, delayChildren: 0.04 },
+    opacity: 1, scale: 1,
+    transition: { duration: 0.16, ease: [0.16, 1, 0.3, 1], staggerChildren: 0.025, delayChildren: 0.03 },
   },
   exit: {
-    opacity: 0, y: -6, scale: 0.98,
-    transition: { duration: 0.16, ease: [0.4, 0, 1, 1], staggerChildren: 0.02, staggerDirection: -1 },
+    opacity: 0, scale: 0.96,
+    transition: { duration: 0.1, ease: [0.4, 0, 1, 1] },
   },
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 4 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } },
-  exit:    { opacity: 0, y: 2, transition: { duration: 0.12, ease: 'easeIn' } },
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.12 } },
+  exit:    { opacity: 0, transition: { duration: 0.08 } },
 }
 
 const pillTransition = { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }
@@ -71,7 +76,12 @@ export function Navbar() {
   // wordmark chip show from the start, not just once the page is scrolled.
   // On mobile it keeps the original scroll-triggered behavior.
   const scrolled = scrollY > 40 || isDesktop
-  const pillActive = scrolled || open
+  // Deliberately checks `!open` too — the expanding menu panel below paints
+  // its own opaque background, so if this pill stayed "active" while open
+  // (as it did originally) it leaves a second, smaller rounded shape
+  // showing behind/around the panel. This pill should only ever show its
+  // own chip when the menu is fully closed.
+  const pillActive = scrolled && !open
 
   // Slide the whole bar off-screen while actively scrolling down, and bring
   // it back on scroll-up — frees up the viewport on long pages, Google
@@ -85,6 +95,26 @@ export function Navbar() {
     scrollToSection(href)
     setOpen(false)
   }, [])
+
+  // Collapse on tapping/clicking anywhere outside the menu — mirrors the
+  // MusicFab pattern so the two "expand in place" widgets behave the same
+  // way. mousedown (not click) so it fires before any outside click handler.
+  const menuRef = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false)
+    }
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
 
   return (
     <>
@@ -241,134 +271,90 @@ export function Navbar() {
                 </AnimatePresence>
               </motion.button>
 
-              {/* ══ Hamburger — mobile only ══ */}
+              {/* ══ Hamburger — mobile only ══
+                  Kept deliberately simple: a plain button, and a separate
+                  panel that mounts/unmounts with AnimatePresence (not a
+                  `layout`-driven resize). It fades and scales in from the
+                  button's own top-right corner (transform-origin), which
+                  reads as "growing out of that spot" without actually
+                  interpolating width/height — so there's no mid-animation
+                  frame where the box is some in-between size with a
+                  half-applied style. The panel is fully opaque from its
+                  very first rendered frame and gone entirely when closed,
+                  so there's nothing behind it to flash through. No cross/
+                  close icon: the hamburger just fades out while the panel
+                  is open, and tapping outside (or Escape) brings it back. */}
               <div className="relative md:hidden">
-                <button
-                  onClick={() => setOpen((o) => !o)}
-                  aria-label={open ? 'Close menu' : 'Open menu'}
+                <motion.button
+                  onClick={() => setOpen(true)}
+                  animate={{ opacity: open ? 0 : 1 }}
+                  transition={{ duration: 0.12 }}
+                  style={{ pointerEvents: open ? 'none' : 'auto' }}
+                  aria-label="Open menu"
                   aria-expanded={open}
                   aria-controls="nav-drawer"
                   className={cn(
                     'flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
-                    open
-                      ? dark ? 'text-white' : 'text-slate-800'
-                      : dark ? 'text-slate-300 hover:text-white' : 'text-slate-500 hover:text-slate-800',
+                    dark ? 'text-slate-300 hover:text-white' : 'text-slate-500 hover:text-slate-800',
                   )}
                 >
-                  <AnimatePresence mode="wait" initial={false}>
-                    {open ? (
-                      <motion.svg
-                        key="close"
-                        initial={{ rotate: -45, opacity: 0, scale: 0.7 }}
-                        animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                        exit={{ rotate: 45, opacity: 0, scale: 0.7 }}
-                        transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                        aria-hidden="true"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                      </motion.svg>
-                    ) : (
-                      <motion.svg
-                        key="open"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
-                        width="17" height="11" viewBox="0 0 17 11" fill="none"
-                        aria-hidden="true"
-                      >
-                        <line x1="0" y1="1"   x2="17" y2="1"   stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                        <line x1="0" y1="5.5" x2="11" y2="5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                        <line x1="0" y1="10"  x2="17" y2="10"  stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                      </motion.svg>
-                    )}
-                  </AnimatePresence>
-                </button>
+                  <svg width="17" height="11" viewBox="0 0 17 11" fill="none" aria-hidden="true">
+                    <line x1="0" y1="1"   x2="17" y2="1"   stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                    <line x1="0" y1="5.5" x2="11" y2="5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                    <line x1="0" y1="10"  x2="17" y2="10"  stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                  </svg>
+                </motion.button>
 
-                {/* ── Mobile dropdown menu ── */}
                 <AnimatePresence>
                   {open && (
-                    <>
-                      <motion.div
-                        key="backdrop"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="fixed inset-0 z-[-1]"
-                        onClick={() => setOpen(false)}
-                      />
-
-                      <motion.div
-                        id="nav-drawer"
-                        key="drawer"
-                        variants={drawerVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        role="dialog"
-                        aria-label="Navigation menu"
-                        style={{
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                        }}
-                        className={cn(
-                          'absolute right-0 top-[calc(100%+12px)]',
-                          'w-[calc(100vw-2rem)] max-w-[240px] sm:w-[240px]',
-                          'rounded-2xl overflow-hidden',
-                          dark
-                            ? 'bg-[#0d0d1a] border border-white/[0.10] shadow-[0_20px_60px_rgba(0,0,0,0.8)]'
-                            : 'bg-white/95 border border-slate-200 shadow-[0_20px_60px_rgba(0,0,0,0.12)]'
-                        )}
-                      >
-                        <nav className="py-4 px-3" aria-label="Page links">
-                          {navLinks.map(({ label, href }, i) => {
-                            const isActive = active === href
-                            return (
-                              <motion.button
-                                key={href}
-                                variants={itemVariants}
-                                onClick={() => handleNav(href)}
-                                aria-current={isActive ? 'page' : undefined}
-                                className={cn(
-                                  'group flex w-full items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-colors duration-150',
-                                  isActive
-                                    ? dark
-                                      ? 'bg-white/[0.06] text-white/75'
-                                      : 'bg-slate-100/70 text-slate-700'
-                                    : dark
-                                      ? 'text-slate-300 hover:bg-white/[0.07] hover:text-white'
-                                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                                )}
-                              >
-                                <span className={cn(
-                                  'font-mono text-[11px] tabular-nums shrink-0 leading-none w-4 text-right',
-                                  isActive
-                                    ? dark ? 'text-slate-400' : 'text-slate-400'
-                                    : dark ? 'text-slate-500' : 'text-slate-400'
-                                )}>
-                                  {String(i + 1).padStart(2, '0')}
-                                </span>
-
-                                <span className={cn(
-                                  'h-3.5 w-px shrink-0',
-                                  dark ? 'bg-white/[0.12]' : 'bg-slate-200'
-                                )} aria-hidden="true" />
-
-                                <span className={cn(
-                                  'text-[17px] tracking-tight leading-none',
-                                  isActive ? 'font-medium' : 'font-normal'
-                                )}>
-                                  {label}
-                                </span>
-                              </motion.button>
-                            )
-                          })}
-                        </nav>
-                      </motion.div>
-                    </>
+                    <motion.nav
+                      ref={menuRef}
+                      id="nav-drawer"
+                      key="menu"
+                      variants={menuVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      style={{ transformOrigin: 'top right' }}
+                      role="dialog"
+                      aria-label="Navigation menu"
+                      className={cn(
+                        'absolute right-0 top-0 z-10 w-[calc(100vw-3rem)] max-w-[200px] sm:w-[200px]',
+                        'flex flex-col overflow-hidden rounded-2xl border py-3 px-2.5',
+                        dark
+                          ? 'bg-[#0d0d1a] border-white/[0.10] shadow-[0_20px_60px_rgba(0,0,0,0.8)]'
+                          : 'bg-white border-slate-200 shadow-[0_20px_60px_rgba(0,0,0,0.12)]'
+                      )}
+                    >
+                      {navLinks.map(({ label, href }) => {
+                        const isActive = active === href
+                        return (
+                          <motion.button
+                            key={href}
+                            variants={itemVariants}
+                            onClick={() => handleNav(href)}
+                            aria-current={isActive ? 'page' : undefined}
+                            className={cn(
+                              'group flex w-full items-center px-4 py-3.5 rounded-xl text-left transition-colors duration-150',
+                              isActive
+                                ? dark
+                                  ? 'bg-white/[0.06] text-white/75'
+                                  : 'bg-slate-100/70 text-slate-700'
+                                : dark
+                                  ? 'text-slate-300 hover:bg-white/[0.07] hover:text-white'
+                                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                            )}
+                          >
+                            <span className={cn(
+                              'text-[17px] tracking-tight leading-none',
+                              isActive ? 'font-medium' : 'font-normal'
+                            )}>
+                              {label}
+                            </span>
+                          </motion.button>
+                        )
+                      })}
+                    </motion.nav>
                   )}
                 </AnimatePresence>
               </div>
