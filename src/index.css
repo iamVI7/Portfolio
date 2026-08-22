@@ -7,6 +7,45 @@
     box-sizing: border-box;
   }
 
+  /* Smooth, fluid theme switching: every element cross-fades its own
+     colors when the `dark` class flips, instead of the whole UI
+     snapping instantly. This is a low-specificity default (universal
+     selector) so any element with its own Tailwind `transition-colors`
+     utility — which carries a class selector and therefore wins the
+     cascade — keeps using its own (usually shorter, hover-tuned)
+     duration untouched.
+
+     Kept deliberately to background-color/color/border-color/fill/stroke
+     only — no box-shadow or text-decoration-color. Those are the cheap,
+     compositor-friendly properties; adding box-shadow made many elements
+     repaint their shadow every frame at once, which is what made the
+     transition feel choppy rather than fluid. Elements that already
+     animate their own shadow (e.g. via Framer Motion) do so separately
+     and are unaffected. */
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: ease;
+    transition-duration: 300ms;
+  }
+
+  /* Opt out elements whose colors are already driven frame-by-frame by
+     Framer Motion's `animate` prop (e.g. the Navbar's floating pill,
+     which animates backgroundColor/borderColor/boxShadow on scroll).
+     Without this, the CSS transition above and Framer's own JS-driven
+     updates both try to own the same properties every frame, and each
+     restarts a new 300ms transition on top of the last — that fight is
+     what causes visible stutter. Framer already animates these smoothly
+     on its own, so the CSS transition here is just noise. */
+  .theme-transition-none {
+    transition-property: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0ms !important;
+    }
+  }
+
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;

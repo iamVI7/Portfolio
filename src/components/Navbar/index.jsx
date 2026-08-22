@@ -162,7 +162,7 @@ export function Navbar() {
           {/* ── Right side: one unified pill holding links (desktop), toggle, and hamburger (mobile) ── */}
           <div className="flex items-center">
             <motion.div
-              className="relative flex items-center rounded-full"
+              className="relative flex items-center rounded-full theme-transition-none"
               animate={pillActive
                 ? dark
                   ? {

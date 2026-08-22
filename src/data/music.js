@@ -11,6 +11,6 @@
 export const NOW_PLAYING = {
   artist: 'Elissar',
   title: 'Wild Ride',
-  url: 'https://open.spotify.com/track/6d5cM6z14CjPa3IfhAOMYb',
+  url: 'https://youtu.be/OmncQ2CAPXs?si=bR77SQeEddTtXWvJ',
   src: '/music/Wild Ride.mp3',
 }
