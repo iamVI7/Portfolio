@@ -11,7 +11,7 @@ const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
 
-const TOPICS = ['defence', 'sci-fi', 'tech', 'India', 'astronomy', 'startups', 'space', 'the future']
+const TOPICS = ['defence', 'sci-fi', 'technology', 'Our India', 'astronomy', 'startups', 'space', 'the future']
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
