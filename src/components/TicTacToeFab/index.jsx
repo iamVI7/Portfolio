@@ -1,11 +1,12 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { Gamepad2, X, RotateCcw, Sun, Moon } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { subscribeModalVisibility } from '../../utils/modalBus'
 import { subscribeMusicVisibility } from '../../utils/musicBus'
 import { announceGameOpen } from '../../utils/gameBus'
 import { useTheme } from '../../context/ThemeContext'
+import { useResponsiveSpring } from '../../utils/motionSprings'
 import { MusicFab } from '../MusicFab'
 
 /**
@@ -96,6 +97,8 @@ export function TicTacToeFab() {
   const [hasOpened, setHasOpened] = useState(false)
   const [suppressed, setSuppressed] = useState(false) // true while another modal/popup is open
   const [compact, setCompact] = useState(false) // true while the music widget is expanded
+  // Shared with MusicFab's own container resize — see utils/motionSprings.
+  const pillLayoutSpring = useResponsiveSpring()
   const panelRef = useRef(null)
 
   // Hide entirely whenever something else (certificate lightbox, contact
@@ -230,22 +233,45 @@ export function TicTacToeFab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thinking, result?.player])
 
-  if (suppressed) return null
-
+  // Hidden while another overlay (certificates lightbox, contact modal) is
+  // open — but NOT unmounted. Returning null here used to tear down this
+  // whole subtree, which meant every AnimatePresence child (the toggle, the
+  // play pill) forgot it had already appeared and replayed its `initial`
+  // scale/opacity pop-in the moment the other modal closed and this
+  // remounted. Hiding with CSS instead keeps everything mounted the whole
+  // time, so closing a modal just reveals the dock as it already was —
+  // no re-entrance animation.
   return (
-    <>
+    <div className={suppressed ? 'invisible pointer-events-none' : undefined}>
       {/* Floating trigger — wide navbar-style pill on mobile, corner icon on desktop */}
       <div className="fixed z-[70] bottom-5 inset-x-0 justify-center sm:inset-x-auto sm:justify-start sm:left-auto sm:right-8 sm:bottom-8 flex items-center gap-3 sm:flex-row-reverse">
+        {/* LayoutGroup batches the FLIP position measurements for every
+            `layout`-animated child below (toggle, play pill) into the same
+            frame. Without it each element's position shift — caused by the
+            music widget resizing next to them and the whole row
+            re-centering (justify-center) — gets measured and animated on
+            its own schedule, which is what read as the game icon "jumping"
+            instead of sliding: some siblings would repaint a frame or two
+            apart from each other. */}
+        <LayoutGroup>
         {/* Dark mode toggle — its own circle, mobile only, sits beside the play pill */}
         <AnimatePresence>
           {!open && (
             <motion.button
+              layout
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.92 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              transition={{
+                scale: { type: 'spring', stiffness: 300, damping: 20 },
+                opacity: { duration: 0.2 },
+                // Same reasoning as the play pill below — this button
+                // doesn't resize itself, but it does need to slide smoothly
+                // when the row's total width changes around it.
+                layout: pillLayoutSpring,
+              }}
               onClick={toggle}
               aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
               className="order-1 sm:hidden flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav text-slate-500 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-yellow-300 transition-colors"
@@ -296,7 +322,7 @@ export function TicTacToeFab() {
                 // give it MusicFab's own gentler spring so both widgets
                 // collapse/expand at the same weight and speed instead of
                 // this one snapping faster than the other.
-                layout: { type: 'spring', stiffness: 230, damping: 30, mass: 0.9 },
+                layout: pillLayoutSpring,
               }}
               onClick={handleOpen}
               aria-label="Play tic-tac-toe against Vishal"
@@ -330,18 +356,20 @@ export function TicTacToeFab() {
 
         {/* Music widget — sits between the dark mode toggle and the play
             pill on mobile (order-2, between the toggle's order-1 and the
-            pill's order-3). On desktop the dark toggle is hidden and the
-            row is reversed, so it goes back to sm:order-1 to stay at the
-            dock's outer edge. */}
-        <div className="order-2 sm:order-1">
+            pill's order-3), staying inline in the same row. On desktop it
+            pops out of the row entirely and docks directly above the play
+            button instead of beside it — absolutely positioned, right-aligned
+            to the same edge, lifted clear of the row by its own height plus
+            the row's usual gap-3 spacing. */}
+        <div className="order-2 sm:absolute sm:right-0 sm:bottom-full sm:mb-3">
           <MusicFab />
         </div>
 
         {/* Tooltip, desktop only — mobile pill already shows the label inline.
-            sm:order-3 (higher than the play pill's sm:order-2) pushes it past
-            the pill along the reversed row, which puts it on the pill's left
-            — reading as a label next to the button it's pointing at, rather
-            than stranded out past the music widget. */}
+            sm:order-3 pushes it past the play pill (sm:order-2) along the
+            reversed row so it reads as a label beside the button. The music
+            widget no longer shares this row on desktop, so this ordering is
+            just play pill vs. tooltip now. */}
         <AnimatePresence>
           {!open && !hasOpened && !compact && (
             <motion.span
@@ -384,6 +412,7 @@ export function TicTacToeFab() {
             </motion.span>
           )}
         </AnimatePresence>
+        </LayoutGroup>
       </div>
 
       {/* Backdrop — mobile only, gives the panel a proper bottom-sheet feel */}
@@ -505,6 +534,6 @@ export function TicTacToeFab() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   )
 }

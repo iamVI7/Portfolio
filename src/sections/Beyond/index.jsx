@@ -49,6 +49,17 @@ export function Beyond() {
       className="relative overflow-hidden py-16 sm:py-20 flex flex-col gap-8"
     >
       <Container size="lg">
+        {/* Quote — bridges from work into what's beyond it */}
+        <div className="mb-14 sm:mb-16 flex items-center gap-6 sm:gap-10">
+          <div className="flex-1 border-t border-dashed border-slate-300/80 dark:border-white/[0.2]" />
+          <p className="shrink-0 font-serif text-[18px] sm:text-[24px] md:text-[28px] font-normal leading-snug tracking-tight text-center text-slate-800 dark:text-slate-200 max-w-[28ch]">
+            The keyboard builds my <em className="italic text-indigo-400">work</em>.
+            <br />
+            Everything else builds <em className="italic text-indigo-400">me</em>.
+          </p>
+          <div className="flex-1 border-t border-dashed border-slate-300/80 dark:border-white/[0.2]" />
+        </div>
+
         <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-indigo-400 dark:text-indigo-500">
           Beyond the keyboard
         </p>

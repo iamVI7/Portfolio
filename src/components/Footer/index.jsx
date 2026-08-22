@@ -41,7 +41,7 @@ const socials = [
 
 export function Footer() {
   return (
-    <footer role="contentinfo" className="border-t border-slate-100 dark:border-white/[0.07]">
+    <footer role="contentinfo">
       <Container size="lg">
         <div className="flex flex-col items-center gap-6 pt-8 pb-28 sm:py-8 sm:flex-row sm:items-center sm:justify-between">
 
@@ -52,7 +52,7 @@ export function Footer() {
                 <li key={label}>
                   <a
                     href={href}
-                    className="font-mono text-[11px] font-medium uppercase tracking-widest text-slate-400 dark:text-slate-500 transition-colors hover:text-slate-700 dark:hover:text-slate-300"
+                    className="font-mono text-[11px] font-medium uppercase tracking-widest text-slate-500 dark:text-slate-400 transition-colors hover:text-slate-800 dark:hover:text-slate-200"
                   >
                     {label}
                   </a>
@@ -71,14 +71,14 @@ export function Footer() {
                   target={href.startsWith('http') ? '_blank' : undefined}
                   rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
                   aria-label={label}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-500 transition-colors hover:border-indigo-200 dark:hover:border-indigo-500/40 hover:text-indigo-500 dark:hover:text-indigo-400"
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-300/80 dark:border-white/15 bg-white/60 dark:bg-white/[0.06] backdrop-blur-sm text-slate-500 dark:text-slate-300 shadow-sm transition-colors hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:text-indigo-600 dark:hover:text-indigo-400"
                 >
                   {icon}
                 </a>
               ))}
             </div>
-            <span className="h-3.5 w-px bg-slate-200 dark:bg-white/10" aria-hidden="true" />
-            <span className="font-mono text-[10.5px] text-slate-400 dark:text-slate-500">
+            <span className="h-3.5 w-px bg-slate-300 dark:bg-white/15" aria-hidden="true" />
+            <span className="font-mono text-[10.5px] text-slate-500 dark:text-slate-400">
               {String.fromCharCode(169)} {new Date().getFullYear()}
             </span>
           </div>

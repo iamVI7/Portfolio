@@ -256,7 +256,7 @@ function ContactModal({ open, onClose, dark }) {
                           id="modal-message" name="message" required rows={5}
                           value={form.message} onChange={handleChange}
                           onFocus={() => setFocused('message')} onBlur={() => setFocused(null)}
-                          placeholder="I am all ears..." className={cn(inputCls('message'), 'resize-none')}
+                          placeholder="I'm all ears..." className={cn(inputCls('message'), 'resize-none')}
                         />
                       </div>
 

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Music2, Play } from 'lucide-react'
 import { cn } from '../../utils/cn'
+import { useResponsiveSpring } from '../../utils/motionSprings'
 import { subscribeModalVisibility } from '../../utils/modalBus'
 import { announceMusicOpen } from '../../utils/musicBus'
 import { subscribeGameVisibility } from '../../utils/gameBus'
@@ -75,6 +76,9 @@ export function MusicFab() {
   const audioRef = useRef(null)
   const containerRef = useRef(null)
   const collapseTimer = useRef(null)
+  // Shared with TicTacToeFab's play-pill resize, so both widgets move at
+  // the same weight — smoother on desktop, original snappier feel on mobile.
+  const containerSpring = useResponsiveSpring()
   // Timestamp the wave "started" at, set once on the first successful play
   // and never reset — it's the clock the Wave bars sync their phase to, so
   // remounting them (pill collapse, icon swap) never looks like a restart.
@@ -143,21 +147,26 @@ export function MusicFab() {
     }
   }
 
-  if (suppressed) return null
-
+  // Hidden (not unmounted) while another overlay is open — same reasoning
+  // as TicTacToeFab's own fix: unmounting made the collapsed-circle button
+  // replay its pop-in animation every time a modal closed. `contents`
+  // keeps this wrapper box-free (matching the old Fragment exactly, so it
+  // can't disturb the absolute/flex positioning the parent dock relies on)
+  // while still letting `invisible`/`pointer-events-none` inherit down to
+  // the actual button.
   return (
-    <>
+    <div className={cn('contents', suppressed && 'invisible pointer-events-none')}>
       <audio ref={audioRef} src={NOW_PLAYING.src} loop preload="none" />
 
       <motion.div
         ref={containerRef}
         layout
-        transition={{ type: 'spring', stiffness: 230, damping: 30, mass: 0.9 }}
+        transition={containerSpring}
         className={cn(
-          'relative flex shrink-0 items-center overflow-hidden rounded-full',
+          'relative flex shrink-0 overflow-hidden',
           open
-            ? 'h-14 gap-3 pl-1.5 pr-4 bg-white dark:bg-[#14141f] border border-indigo-100/70 dark:border-white/10 shadow-card dark:shadow-card-dark'
-            : 'h-12 w-12 justify-center bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav sm:shadow-pill sm:bg-indigo-50/70 sm:dark:bg-indigo-500/10 sm:border-indigo-200 sm:dark:border-indigo-500/30'
+            ? 'h-14 items-center gap-3 pl-1.5 pr-4 rounded-full sm:h-auto sm:w-[176px] sm:flex-col sm:justify-center sm:gap-2 sm:rounded-3xl sm:py-4 sm:px-3 bg-white dark:bg-[#14141f] border border-indigo-100/70 dark:border-white/10 shadow-card dark:shadow-card-dark'
+            : 'h-12 w-12 items-center justify-center rounded-full bg-white/85 dark:bg-white/[0.07] backdrop-blur-md border border-slate-200/50 dark:border-white/10 shadow-nav sm:shadow-pill sm:bg-indigo-50/70 sm:dark:bg-indigo-500/10 sm:border-indigo-200 sm:dark:border-indigo-500/30'
         )}
       >
         {/* mode="wait" is kept (children aren't absolutely stacked, so
@@ -215,7 +224,7 @@ export function MusicFab() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { duration: 0.26, ease: 'easeInOut' } }}
               exit={{ opacity: 0, transition: { duration: 0.14, ease: 'easeInOut' } }}
-              className="flex items-center gap-3"
+              className="flex flex-row items-center gap-3 sm:flex-col sm:gap-2"
             >
               <button
                 onClick={togglePlayback}
@@ -253,7 +262,7 @@ export function MusicFab() {
                 </AnimatePresence>
               </button>
 
-              <div className="flex flex-col leading-tight pr-2">
+              <div className="flex flex-col leading-tight pr-2 sm:items-center sm:text-center sm:pr-0">
                 <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 whitespace-nowrap">
                   Currently vibing to
                 </span>
@@ -263,12 +272,12 @@ export function MusicFab() {
                     target="_blank"
                     rel="noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="text-[15px] font-bold tracking-tight text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 whitespace-nowrap"
+                    className="text-[15px] font-bold tracking-tight text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 whitespace-nowrap sm:whitespace-normal"
                   >
                     {NOW_PLAYING.artist} – {NOW_PLAYING.title}
                   </a>
                 ) : (
-                  <span className="text-[15px] font-bold tracking-tight text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                  <span className="text-[15px] font-bold tracking-tight text-slate-800 dark:text-slate-100 whitespace-nowrap sm:whitespace-normal">
                     {NOW_PLAYING.artist} – {NOW_PLAYING.title}
                   </span>
                 )}
@@ -277,6 +286,6 @@ export function MusicFab() {
           )}
         </AnimatePresence>
       </motion.div>
-    </>
+    </div>
   )
 }

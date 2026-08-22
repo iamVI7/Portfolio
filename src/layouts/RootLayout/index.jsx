@@ -2,6 +2,7 @@ import { Navbar } from '../../components/Navbar'
 import { Footer } from '../../components/Footer'
 import { CustomCursor } from '../../components/CustomCursor'
 import { TicTacToeFab } from '../../components/TicTacToeFab'
+import { EndCloud } from '../../components/EndCloud'
 
 export function RootLayout({ children }) {
   return (
@@ -13,6 +14,7 @@ export function RootLayout({ children }) {
       </main>
       <Footer />
       <TicTacToeFab />
+      <EndCloud />
     </div>
   )
 }
